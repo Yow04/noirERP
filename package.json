@@ -1,0 +1,19 @@
+{
+  "name": "noirerp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "workspaces": [
+    "apps/website",
+    "apps/api"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "dev:website": "npm run dev --workspace=apps/website",
+    "dev:api": "npm run dev --workspace=apps/api"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
