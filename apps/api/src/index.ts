@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { sql } from "drizzle-orm";
 import { db } from "./db";
+import productsRoutes from "./routes/product";
 
 const app = new Hono()
 
@@ -59,6 +60,8 @@ app.get("/api/v1", (c) => {
     message: "Welcome to API for noirERP",
   });
 });
+
+app.route('/api/v1/products', productsRoutes);
 
 export default {
   port: Number(process.env.API_PORT ?? "3000"),

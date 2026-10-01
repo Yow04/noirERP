@@ -6,15 +6,14 @@ import {
     integer,
     numeric,
     timestamp,
+    foreignKey,
 } from 'drizzle-orm/pg-core';
 
 import { categories } from './categories';
 
 export const products = pgTable('products', {
     id: uuid('id').primaryKey().defaultRandom(),
-    categoryId: uuid("category_id").references(() => categories.id, {
-        onDelete: 'set null',
-    }),
+    categoryId: uuid("category_id"),
     sku: varchar('sku', { length: 100 }).notNull().unique(),
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
@@ -23,4 +22,9 @@ export const products = pgTable('products', {
     stock: integer('stock').default(0).notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+}, (table) => [
+    foreignKey({
+        columns: [table.categoryId],
+        foreignColumns: [categories.id],
+    }).onDelete('set null'),
+]);
