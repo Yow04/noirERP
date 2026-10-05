@@ -48,7 +48,7 @@
     async function loadCategories() {
         try {
             const response = await fetch(
-                `${PUBLIC_API_BASE_URL}/api/v1/categories`,
+                `${PUBLIC_API_BASE_URL}/categories`,
             );
             const result = await response.json();
 
@@ -111,8 +111,8 @@
 
         try {
             const url = isEdit
-                ? `${PUBLIC_API_BASE_URL}/api/v1/products/${product!.id}`
-                : `${PUBLIC_API_BASE_URL}/api/v1/products`;
+                ? `${PUBLIC_API_BASE_URL}/products/${product!.id}`
+                : `${PUBLIC_API_BASE_URL}/products`;
 
             const response = await fetch(url, {
                 method: isEdit ? "PATCH" : "POST",

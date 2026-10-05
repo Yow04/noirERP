@@ -24,7 +24,7 @@
         loading = true;
         error = "";
         try {
-            const response = await fetch(`${PUBLIC_API_BASE_URL}/api/products`);
+            const response = await fetch(`${PUBLIC_API_BASE_URL}/products`);
             const result = await response.json();
 
             if (!response.ok || !result.success) {
@@ -51,7 +51,7 @@
 
         try {
             const response = await fetch(
-                `${PUBLIC_API_BASE_URL}/api/products/${id}`,
+                `${PUBLIC_API_BASE_URL}/products/${id}`,
                 {
                     method: "DELETE",
                 },

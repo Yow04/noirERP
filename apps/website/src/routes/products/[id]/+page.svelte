@@ -26,7 +26,7 @@
 
         try {
             const response = await fetch(
-                `${PUBLIC_API_BASE_URL}/api/v1/products/${id}`,
+                `${PUBLIC_API_BASE_URL}/products/${id}`,
             );
             const result = await response.json();
 
