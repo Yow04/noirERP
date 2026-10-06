@@ -4,6 +4,7 @@ import { cors } from 'hono/cors';
 import { sql } from "drizzle-orm";
 import { db } from "./db";
 import productsRoutes from "./routes/product";
+import dashboardRoutes from "./routes/dashboard";
 
 const app = new Hono()
 
@@ -62,6 +63,7 @@ app.get("/api/v1", (c) => {
 });
 
 app.route('/api/v1/products', productsRoutes);
+app.route('/api/v1/dashboard', dashboardRoutes);
 
 export default {
   port: Number(process.env.API_PORT ?? "3000"),
