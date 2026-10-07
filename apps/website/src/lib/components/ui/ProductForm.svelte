@@ -30,13 +30,25 @@
     const isEdit = $derived(!!product);
 
     // Form fields
-    let sku = $state(product?.sku ?? "");
-    let name = $state(product?.name ?? "");
-    let description = $state(product?.description ?? "");
-    let categoryId = $state(product?.categoryId ?? "");
-    let purchasePrice = $state(product?.purchasePrice?.toString() ?? "0");
-    let sellingPrice = $state(product?.sellingPrice?.toString() ?? "0");
-    let stock = $state(product?.stock?.toString() ?? "0");
+    let sku = $state("");
+    let name = $state("");
+    let description = $state("");
+    let categoryId = $state("");
+    let purchasePrice = $state("0");
+    let sellingPrice = $state("0");
+    let stock = $state("0");
+
+    $effect(() => {
+        if (product) {
+            sku = product.sku ?? "";
+            name = product.name ?? "";
+            description = product.description ?? "";
+            categoryId = product.categoryId ?? "";
+            purchasePrice = product.purchasePrice?.toString() ?? "0";
+            sellingPrice = product.sellingPrice?.toString() ?? "0";
+            stock = product.stock?.toString() ?? "0";
+        }
+    });
 
     // UI state
     let submitting = $state(false);
