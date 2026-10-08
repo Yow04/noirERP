@@ -99,12 +99,12 @@
 
 <style>
     .dashboard-root {
-        min-height: 100dvh;
+        width: 100%;
         padding: 1.5rem;
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
-        max-width: 1280px;
+        max-width: 1360px;
         margin: 0 auto;
     }
 
@@ -127,7 +127,7 @@
     .detail-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        gap: 1.25rem;
     }
 
     .recent-section {
@@ -137,10 +137,12 @@
     @media (max-width: 768px) {
         .dashboard-root {
             padding: 1rem;
+            gap: 1.25rem;
         }
 
         .detail-grid {
             grid-template-columns: 1fr;
+            gap: 1rem;
         }
     }
 </style>

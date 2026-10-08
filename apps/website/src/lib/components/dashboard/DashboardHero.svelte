@@ -2,9 +2,10 @@
     import { Button } from "$lib/components/ui/button";
     import { HugeiconsIcon } from "@hugeicons/svelte";
     import {
-        PackageIcon,
+        PlusSignIcon,
         ArrowRight02Icon,
-        DashboardSpeed02Icon,
+        PackageIcon,
+        ChartLineData02Icon,
     } from "@hugeicons/core-free-icons";
 
     type Props = {
@@ -24,133 +25,205 @@
     const currentGreeting = $derived(greeting ?? defaultGreeting());
 </script>
 
-<header class="dashboard-header">
-    <div class="header-glow"></div>
-    <div class="header-content">
-        <div class="header-text">
-            <div class="header-badge">
-                <HugeiconsIcon
-                    icon={DashboardSpeed02Icon}
-                    size={14}
-                    strokeWidth={2}
-                />
-                <span>Dashboard</span>
+<section class="hero-banner">
+    <div class="banner-ambient-glow"></div>
+    <div class="banner-grid-pattern"></div>
+
+    <div class="banner-content">
+        <div class="banner-text">
+            <div class="system-status-pill">
+                <span class="status-pulse-dot"></span>
+                <span>Inventori & Finansial Terpantau</span>
             </div>
-            <h1>{currentGreeting} 👋</h1>
-            <p>Pantau ringkasan bisnis dan kelola inventori Anda dari sini.</p>
+            <h1 class="banner-title">
+                {currentGreeting}, <span class="gradient-name">Administrator</span> 👋
+            </h1>
+            <p class="banner-desc">
+                Pantau pergerakan stok, estimasi valuasi aset, dan kelola katalog produk Anda dalam satu tampilan terpadu.
+            </p>
         </div>
-        <div class="header-actions">
-            <Button href="/products/new">
+
+        <div class="banner-actions">
+            <Button href="/products/new" class="hero-primary-btn">
                 <HugeiconsIcon
-                    icon={PackageIcon}
+                    icon={PlusSignIcon}
                     size={16}
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                 />
                 Tambah Produk
             </Button>
-            <Button variant="outline" href="/products">
-                Lihat Semua Produk
+            <Button variant="outline" href="/products" class="hero-outline-btn">
+                <HugeiconsIcon
+                    icon={PackageIcon}
+                    size={15}
+                    strokeWidth={2}
+                />
+                Katalog Produk
                 <HugeiconsIcon
                     icon={ArrowRight02Icon}
-                    size={16}
+                    size={14}
                     strokeWidth={2}
                 />
             </Button>
         </div>
     </div>
-</header>
+</section>
 
 <style>
-    .dashboard-header {
+    .hero-banner {
         position: relative;
         border-radius: 1rem;
-        padding: 2rem 2.5rem;
+        padding: 1.75rem 2rem;
         background: linear-gradient(
             135deg,
-            oklch(0.22 0.02 280) 0%,
-            oklch(0.18 0.01 260) 50%,
-            oklch(0.15 0 0) 100%
+            oklch(0.2 0.03 270) 0%,
+            oklch(0.16 0.015 260) 60%,
+            oklch(0.145 0 0) 100%
         );
+        border: 1px solid oklch(1 0 0 / 8%);
         overflow: hidden;
-        border: 1px solid oklch(1 0 0 / 6%);
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
     }
 
-    .header-glow {
+    .banner-ambient-glow {
         position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 400px;
-        height: 400px;
+        top: -40%;
+        right: -10%;
+        width: 360px;
+        height: 360px;
         background: radial-gradient(
             circle,
-            oklch(0.55 0.15 280 / 15%) 0%,
-            transparent 70%
+            oklch(0.5 0.2 270 / 18%) 0%,
+            oklch(0.4 0.15 280 / 5%) 50%,
+            transparent 75%
         );
         pointer-events: none;
     }
 
-    .header-content {
+    .banner-grid-pattern {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(
+            oklch(1 0 0 / 5%) 1px,
+            transparent 1px
+        );
+        background-size: 24px 24px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .banner-content {
         position: relative;
-        z-index: 1;
+        z-index: 2;
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
         gap: 1.5rem;
         flex-wrap: wrap;
     }
 
-    .header-badge {
+    .banner-text {
+        max-width: 600px;
+    }
+
+    .system-status-pill {
         display: inline-flex;
         align-items: center;
-        gap: 0.375rem;
-        padding: 0.25rem 0.75rem;
+        gap: 0.45rem;
+        padding: 0.2rem 0.65rem;
         border-radius: 999px;
-        background: oklch(1 0 0 / 8%);
+        background: oklch(1 0 0 / 6%);
         border: 1px solid oklch(1 0 0 / 10%);
-        font-size: 0.75rem;
+        font-size: 0.71875rem;
         font-weight: 500;
-        color: oklch(0.8 0.08 280);
-        margin-bottom: 0.75rem;
+        color: oklch(0.8 0.08 270);
+        margin-bottom: 0.625rem;
         backdrop-filter: blur(8px);
     }
 
-    .header-text h1 {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: oklch(0.97 0 0);
-        letter-spacing: -0.025em;
-        line-height: 1.2;
+    .status-pulse-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: oklch(0.75 0.18 270);
+        box-shadow: 0 0 6px oklch(0.75 0.18 270);
     }
 
-    .header-text p {
+    .banner-title {
+        font-size: 1.625rem;
+        font-weight: 700;
+        color: oklch(0.98 0 0);
+        letter-spacing: -0.025em;
+        line-height: 1.25;
+    }
+
+    .gradient-name {
+        background: linear-gradient(135deg, oklch(0.95 0.05 270) 0%, oklch(0.8 0.15 280) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .banner-desc {
         margin-top: 0.5rem;
         color: oklch(0.7 0 0);
-        font-size: 0.9rem;
-        max-width: 400px;
+        font-size: 0.875rem;
+        line-height: 1.5;
     }
 
-    .header-actions {
+    .banner-actions {
         display: flex;
+        align-items: center;
         gap: 0.625rem;
         flex-shrink: 0;
-        align-items: center;
+    }
+
+    :global(.hero-primary-btn) {
+        background: linear-gradient(135deg, oklch(0.45 0.2 270) 0%, oklch(0.38 0.18 260) 100%) !important;
+        border: 1px solid oklch(0.55 0.2 270 / 40%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 14px oklch(0.35 0.15 270 / 30%) !important;
+    }
+
+    :global(.hero-primary-btn:hover) {
+        background: linear-gradient(135deg, oklch(0.5 0.22 270) 0%, oklch(0.42 0.2 260) 100%) !important;
+        transform: translateY(-1px);
+    }
+
+    :global(.hero-outline-btn) {
+        background: oklch(1 0 0 / 4%) !important;
+        border: 1px solid oklch(1 0 0 / 12%) !important;
+        color: oklch(0.9 0 0) !important;
+    }
+
+    :global(.hero-outline-btn:hover) {
+        background: oklch(1 0 0 / 8%) !important;
+        color: #ffffff !important;
     }
 
     @media (max-width: 768px) {
-        .dashboard-header {
-            padding: 1.5rem;
+        .hero-banner {
+            padding: 1.25rem 1.25rem;
         }
 
-        .header-content {
+        .banner-title {
+            font-size: 1.35rem;
+        }
+
+        .banner-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .banner-actions {
+            width: 100%;
             flex-direction: column;
         }
 
-        .header-text h1 {
-            font-size: 1.375rem;
-        }
-
-        .header-actions {
+        :global(.hero-primary-btn),
+        :global(.hero-outline-btn) {
             width: 100%;
+            justify-content: center;
         }
     }
 </style>
