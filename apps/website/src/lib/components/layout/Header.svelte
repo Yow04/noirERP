@@ -1,8 +1,5 @@
 <script lang="ts">
     import { page } from "$app/state";
-    import { sidebarState } from "$lib/state/sidebar.svelte";
-    import { HugeiconsIcon } from "@hugeicons/svelte";
-    import { Menu01Icon } from "@hugeicons/core-free-icons";
 
     const breadcrumbData = $derived.by(() => {
         const path = page.url.pathname;
@@ -51,25 +48,7 @@
 
 <header class="header-root">
     <div class="header-left">
-        <!-- Universal Toggle Button "Garis 3" -->
-        <button
-            type="button"
-            class="hamburger-btn"
-            aria-label="Toggle Sidebar Navigasi"
-            title={sidebarState.collapsed ? "Perluas Sidebar" : "Ciutkan Sidebar"}
-            onclick={() => sidebarState.toggle()}
-        >
-            <HugeiconsIcon
-                icon={Menu01Icon}
-                size={19}
-                strokeWidth={2}
-            />
-            <span class="sr-only">Toggle Sidebar</span>
-        </button>
-
-        <div class="header-divider"></div>
-
-        <!-- Breadcrumb Ringkas & Bersih -->
+        <!-- Breadcrumb Lokasi Bersih & Minimalis -->
         <nav class="breadcrumb-container" aria-label="Breadcrumb">
             <div class="breadcrumb-trail">
                 <span class="trail-parent">{breadcrumbData.parent}</span>
@@ -79,7 +58,7 @@
         </nav>
     </div>
 
-    <!-- Header Right: Minimalis & Esensial -->
+    <!-- Header Right: Indikator Status Online -->
     <div class="header-right">
         <div class="status-indicator-pill" title="Koneksi Sistem Aktif">
             <span class="status-dot"></span>
@@ -98,7 +77,7 @@
         justify-content: space-between;
         gap: 1rem;
         height: 3.75rem; /* 60px */
-        padding: 0 1.25rem;
+        padding: 0 1.5rem;
         background: oklch(0.145 0 0 / 85%);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
@@ -115,41 +94,7 @@
     .header-left {
         display: flex;
         align-items: center;
-        gap: 0.875rem;
         min-width: 0;
-    }
-
-    /* "Garis 3" Toggle Button */
-    .hamburger-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 2.125rem;
-        height: 2.125rem;
-        border-radius: 0.5rem;
-        background: oklch(1 0 0 / 4%);
-        border: 1px solid oklch(1 0 0 / 8%);
-        color: oklch(0.85 0 0);
-        cursor: pointer;
-        flex-shrink: 0;
-        transition: all 0.15s ease;
-    }
-
-    .hamburger-btn:hover {
-        background: oklch(1 0 0 / 8%);
-        border-color: oklch(1 0 0 / 14%);
-        color: #ffffff;
-    }
-
-    .hamburger-btn:active {
-        transform: scale(0.96);
-    }
-
-    .header-divider {
-        width: 1px;
-        height: 1.125rem;
-        background: oklch(1 0 0 / 8%);
-        flex-shrink: 0;
     }
 
     /* Breadcrumbs */

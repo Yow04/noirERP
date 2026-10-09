@@ -1,6 +1,5 @@
 <script lang="ts">
     import { page } from "$app/state";
-    import { sidebarState } from "$lib/state/sidebar.svelte";
     import { HugeiconsIcon } from "@hugeicons/svelte";
     import {
         DashboardSpeed02Icon,
@@ -16,42 +15,30 @@
         matchExact?: boolean;
     };
 
-    type NavGroup = {
-        label: string;
-        items: NavItem[];
-    };
-
-    const navigationGroups: NavGroup[] = [
+    const navItems: NavItem[] = [
         {
-            label: "Menu Utama",
-            items: [
-                {
-                    title: "Dashboard",
-                    href: "/",
-                    icon: DashboardSpeed02Icon,
-                    matchExact: true,
-                },
-                {
-                    title: "Produk",
-                    href: "/products",
-                    icon: PackageIcon,
-                },
-                {
-                    title: "Kategori",
-                    href: "/categories",
-                    icon: Tag01Icon,
-                },
-            ],
+            title: "Dashboard",
+            href: "/",
+            icon: DashboardSpeed02Icon,
+            matchExact: true,
         },
         {
-            label: "Manajemen",
-            items: [
-                {
-                    title: "Pengguna",
-                    href: "/users",
-                    icon: UserGroupIcon,
-                },
-            ],
+            title: "Produk",
+            href: "/products",
+            icon: PackageIcon,
+        },
+        {
+            title: "Kategori",
+            href: "/categories",
+            icon: Tag01Icon,
+        },
+    ];
+
+    const managementItems: NavItem[] = [
+        {
+            title: "Pengguna",
+            href: "/users",
+            icon: UserGroupIcon,
         },
     ];
 
@@ -62,33 +49,13 @@
         }
         return currentPath.startsWith(item.href);
     }
-
-    function handleLinkClick() {
-        sidebarState.closeMobile();
-    }
 </script>
 
-<!-- Mobile Overlay Backdrop -->
-{#if sidebarState.mobileOpen}
-    <div
-        class="mobile-backdrop md:hidden"
-        role="button"
-        tabindex="0"
-        aria-label="Tutup Menu"
-        onclick={() => sidebarState.closeMobile()}
-        onkeydown={(e) => e.key === "Escape" && sidebarState.closeMobile()}
-    ></div>
-{/if}
-
-<!-- Sidebar Container -->
-<aside
-    class="sidebar-root"
-    class:collapsed={sidebarState.collapsed}
-    class:mobile-open={sidebarState.mobileOpen}
->
-    <!-- Brand Header: Bersih tanpa tanda X dan tanpa badge PRO -->
-    <div class="sidebar-header">
-        <a href="/" class="brand-link" onclick={handleLinkClick}>
+<!-- Permanent Icon-Only Rail Sidebar -->
+<aside class="sidebar-rail">
+    <!-- Brand Logo Icon -->
+    <div class="rail-header">
+        <a href="/" class="logo-link group" aria-label="noirERP Home">
             <div class="logo-box">
                 <svg
                     class="logo-icon"
@@ -110,313 +77,254 @@
                     <circle cx="23" cy="9" r="2" class="fill-indigo-300" />
                 </svg>
             </div>
-            {#if !sidebarState.collapsed}
-                <div class="brand-info">
-                    <span class="brand-title">
-                        noir<span class="brand-accent">ERP</span>
-                    </span>
-                </div>
-            {/if}
+            <!-- Floating Tooltip -->
+            <span class="rail-tooltip">noirERP</span>
         </a>
     </div>
 
-    <!-- Navigation Menu List -->
-    <nav class="sidebar-nav">
-        {#each navigationGroups as group}
-            <div class="nav-group">
-                {#if !sidebarState.collapsed}
-                    <h3 class="nav-group-label">{group.label}</h3>
-                {:else}
-                    <div class="nav-group-divider"></div>
-                {/if}
+    <!-- Navigation Menu Icons -->
+    <nav class="rail-nav">
+        <!-- Main Navigation Items -->
+        <ul class="nav-list">
+            {#each navItems as item}
+                {@const active = isActive(item)}
+                <li class="nav-item">
+                    <a
+                        href={item.href}
+                        class="rail-icon-btn group"
+                        class:active
+                        aria-label={item.title}
+                    >
+                        <span class="icon-wrap" class:active-icon={active}>
+                            <HugeiconsIcon
+                                icon={item.icon}
+                                size={20}
+                                strokeWidth={active ? 2.2 : 1.8}
+                            />
+                        </span>
 
-                <ul class="nav-items-list">
-                    {#each group.items as item}
-                        {@const active = isActive(item)}
-                        <li class="nav-item">
-                            <a
-                                href={item.href}
-                                class="nav-link group"
-                                class:active
-                                onclick={handleLinkClick}
-                            >
-                                <span class="nav-icon-wrapper" class:active-icon={active}>
-                                    <HugeiconsIcon
-                                        icon={item.icon}
-                                        size={18}
-                                        strokeWidth={active ? 2.2 : 1.8}
-                                    />
-                                </span>
+                        {#if active}
+                            <span class="active-pill-bar"></span>
+                        {/if}
 
-                                {#if !sidebarState.collapsed}
-                                    <span class="nav-label">{item.title}</span>
-                                    {#if active}
-                                        <span class="active-dot"></span>
-                                    {/if}
-                                {:else}
-                                    <!-- Tooltip saat sidebar diciutkan -->
-                                    <span class="rail-tooltip">{item.title}</span>
-                                {/if}
-                            </a>
-                        </li>
-                    {/each}
-                </ul>
-            </div>
-        {/each}
+                        <!-- Floating Tooltip -->
+                        <span class="rail-tooltip">{item.title}</span>
+                    </a>
+                </li>
+            {/each}
+        </ul>
+
+        <div class="nav-divider"></div>
+
+        <!-- Management Navigation Items -->
+        <ul class="nav-list">
+            {#each managementItems as item}
+                {@const active = isActive(item)}
+                <li class="nav-item">
+                    <a
+                        href={item.href}
+                        class="rail-icon-btn group"
+                        class:active
+                        aria-label={item.title}
+                    >
+                        <span class="icon-wrap" class:active-icon={active}>
+                            <HugeiconsIcon
+                                icon={item.icon}
+                                size={20}
+                                strokeWidth={active ? 2.2 : 1.8}
+                            />
+                        </span>
+
+                        {#if active}
+                            <span class="active-pill-bar"></span>
+                        {/if}
+
+                        <!-- Floating Tooltip -->
+                        <span class="rail-tooltip">{item.title}</span>
+                    </a>
+                </li>
+            {/each}
+        </ul>
     </nav>
 
-    <!-- Sidebar Footer: Hanya profil pengguna yang bersih dan minimalis -->
-    <div class="sidebar-footer">
-        <div class="user-card" class:mini={sidebarState.collapsed}>
-            <div class="user-avatar-wrap">
-                <span class="avatar-initials">AD</span>
+    <!-- Rail Footer: User Profile Avatar -->
+    <div class="rail-footer">
+        <div class="user-avatar-btn group" tabindex="0" role="button" aria-label="Profil Admin">
+            <div class="user-avatar">
+                <span class="avatar-text">AD</span>
                 <span class="online-dot"></span>
             </div>
-            {#if !sidebarState.collapsed}
-                <div class="user-details">
-                    <span class="user-name">Admin noirERP</span>
-                    <span class="user-role">Administrator</span>
-                </div>
-            {:else}
-                <span class="rail-tooltip">Admin noirERP</span>
-            {/if}
+            <!-- Floating Tooltip -->
+            <span class="rail-tooltip">Admin noirERP</span>
         </div>
     </div>
 </aside>
 
 <style>
-    /* Mobile Backdrop */
-    .mobile-backdrop {
-        position: fixed;
-        inset: 0;
-        z-index: 45;
-        background: rgba(0, 0, 0, 0.65);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        transition: opacity 0.25s ease;
-    }
-
-    /* Sidebar Container */
-    .sidebar-root {
+    /* Fixed Icon-Only Rail Sidebar */
+    .sidebar-rail {
         position: fixed;
         top: 0;
         bottom: 0;
         left: 0;
         z-index: 50;
+        width: 4.5rem; /* 72px */
         display: flex;
         flex-direction: column;
-        width: 16rem; /* 256px */
+        align-items: center;
         background: oklch(0.155 0.005 260 / 96%);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-right: 1px solid oklch(1 0 0 / 8%);
-        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-            transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         user-select: none;
     }
 
-    /* Desktop Collapsed Rail */
-    @media (min-width: 768px) {
-        .sidebar-root.collapsed {
-            width: 4.75rem; /* 76px */
-        }
-    }
-
-    /* Mobile Drawer */
-    @media (max-width: 767px) {
-        .sidebar-root {
-            width: 16.5rem;
-            transform: translateX(-100%);
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
-        }
-
-        .sidebar-root.mobile-open {
-            transform: translateX(0);
-        }
-    }
-
     /* Header */
-    .sidebar-header {
+    .rail-header {
+        height: 3.75rem; /* 60px */
         display: flex;
         align-items: center;
-        padding: 0 1.25rem;
-        height: 3.75rem; /* 60px */
+        justify-content: center;
+        width: 100%;
         border-bottom: 1px solid oklch(1 0 0 / 7%);
     }
 
-    .brand-link {
+    .logo-link {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        justify-content: center;
+        position: relative;
         text-decoration: none;
-        overflow: hidden;
     }
 
     .logo-box {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 2.125rem;
-        height: 2.125rem;
-        flex-shrink: 0;
+        width: 2.25rem;
+        height: 2.25rem;
         border-radius: 0.5rem;
         transition: transform 0.2s ease;
     }
 
-    .brand-link:hover .logo-box {
-        transform: scale(1.05);
+    .logo-link:hover .logo-box {
+        transform: scale(1.08);
     }
 
     .logo-icon {
-        width: 2.125rem;
-        height: 2.125rem;
+        width: 2.25rem;
+        height: 2.25rem;
     }
 
-    .brand-info {
-        display: flex;
-        align-items: center;
-        white-space: nowrap;
-    }
-
-    .brand-title {
-        font-size: 1.125rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        color: oklch(0.97 0 0);
-    }
-
-    .brand-accent {
-        color: oklch(0.75 0.18 280);
-        font-weight: 800;
-    }
-
-    /* Nav */
-    .sidebar-nav {
+    /* Navigation */
+    .rail-nav {
         flex: 1;
+        width: 100%;
+        padding: 1rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
         overflow-y: auto;
-        overflow-x: hidden;
-        padding: 1rem 0.75rem;
+    }
+
+    .rail-nav::-webkit-scrollbar {
+        width: 0;
+    }
+
+    .nav-list {
         display: flex;
         flex-direction: column;
-        gap: 1.25rem;
-    }
-
-    .sidebar-nav::-webkit-scrollbar {
-        width: 4px;
-    }
-    .sidebar-nav::-webkit-scrollbar-thumb {
-        background: oklch(1 0 0 / 10%);
-        border-radius: 4px;
-    }
-
-    .nav-group-label {
-        font-size: 0.6875rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: oklch(0.48 0 0);
-        padding: 0 0.625rem;
-        margin-bottom: 0.4rem;
-    }
-
-    .nav-group-divider {
-        height: 1px;
-        background: oklch(1 0 0 / 7%);
-        margin: 0.375rem 0.5rem;
-    }
-
-    .nav-items-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
+        align-items: center;
+        gap: 0.375rem;
         list-style: none;
         padding: 0;
         margin: 0;
+        width: 100%;
     }
 
     .nav-item {
         position: relative;
-    }
-
-    .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.5625rem 0.75rem;
-        border-radius: 0.5rem;
-        color: oklch(0.7 0 0);
-        font-size: 0.84375rem;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.15s ease-in-out;
-        position: relative;
-    }
-
-    .nav-link:hover {
-        color: oklch(0.98 0 0);
-        background: oklch(1 0 0 / 5%);
-    }
-
-    .nav-link.active {
-        color: #ffffff;
-        background: linear-gradient(
-            90deg,
-            oklch(0.35 0.15 270 / 30%) 0%,
-            oklch(0.25 0.08 270 / 12%) 100%
-        );
-        border: 1px solid oklch(0.5 0.15 270 / 30%);
-        font-weight: 600;
-    }
-
-    .nav-icon-wrapper {
         display: flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
-        width: 1.5rem;
-        height: 1.5rem;
-        color: oklch(0.6 0 0);
-        transition: color 0.15s ease, transform 0.15s ease;
+        width: 100%;
     }
 
-    .nav-link:hover .nav-icon-wrapper {
-        color: oklch(0.95 0 0);
-        transform: scale(1.08);
+    .rail-icon-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 0.625rem;
+        color: oklch(0.65 0 0);
+        text-decoration: none;
+        position: relative;
+        transition: all 0.15s ease-in-out;
     }
 
-    .nav-icon-wrapper.active-icon {
-        color: oklch(0.8 0.15 270);
+    .rail-icon-btn:hover {
+        color: oklch(0.98 0 0);
+        background: oklch(1 0 0 / 6%);
+        transform: scale(1.04);
     }
 
-    .nav-label {
-        flex: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    .rail-icon-btn.active {
+        color: #ffffff;
+        background: linear-gradient(
+            135deg,
+            oklch(0.38 0.16 270 / 40%) 0%,
+            oklch(0.28 0.1 270 / 20%) 100%
+        );
+        border: 1px solid oklch(0.55 0.18 270 / 35%);
+        box-shadow: 0 4px 12px oklch(0.35 0.15 270 / 20%);
     }
 
-    .active-dot {
-        width: 5px;
-        height: 5px;
-        border-radius: 999px;
+    .icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.15s ease;
+    }
+
+    .icon-wrap.active-icon {
+        color: oklch(0.85 0.18 270);
+    }
+
+    /* Left pill indicator bar for active item */
+    .active-pill-bar {
+        position: absolute;
+        left: 0.125rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 1.25rem;
+        border-radius: 0 3px 3px 0;
         background: oklch(0.75 0.18 270);
-        box-shadow: 0 0 6px oklch(0.75 0.18 270);
-        margin-left: auto;
+        box-shadow: 0 0 8px oklch(0.75 0.18 270);
     }
 
-    /* Rail mode tooltips */
+    .nav-divider {
+        width: 1.75rem;
+        height: 1px;
+        background: oklch(1 0 0 / 8%);
+        margin: 0.25rem 0;
+    }
+
+    /* Tooltip */
     .rail-tooltip {
         position: absolute;
         left: 100%;
-        margin-left: 0.625rem;
+        margin-left: 0.75rem;
         top: 50%;
-        transform: translateY(-50%) scale(0.95);
+        transform: translateY(-50%) scale(0.92);
         opacity: 0;
         pointer-events: none;
         background: oklch(0.22 0.02 260);
         color: oklch(0.98 0 0);
         border: 1px solid oklch(1 0 0 / 12%);
-        padding: 0.35rem 0.625rem;
+        padding: 0.35rem 0.65rem;
         border-radius: 0.375rem;
         font-size: 0.75rem;
         font-weight: 600;
@@ -426,61 +334,49 @@
         z-index: 60;
     }
 
-    .nav-link:hover .rail-tooltip,
-    .user-card:hover .rail-tooltip {
+    .group:hover .rail-tooltip {
         opacity: 1;
         transform: translateY(-50%) scale(1);
     }
 
-    /* Collapsed adjustments */
-    .sidebar-root.collapsed .nav-link {
-        justify-content: center;
-        padding: 0.5625rem 0;
-    }
-
-    .sidebar-root.collapsed .sidebar-header {
-        justify-content: center;
-        padding: 0;
-    }
-
     /* Footer */
-    .sidebar-footer {
-        padding: 0.75rem 0.75rem;
+    .rail-footer {
+        padding: 1rem 0;
         border-top: 1px solid oklch(1 0 0 / 7%);
-        background: oklch(0.145 0 0 / 40%);
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        background: oklch(0.145 0 0 / 30%);
     }
 
-    .user-card {
+    .user-avatar-btn {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
-        padding: 0.5rem 0.625rem;
-        border-radius: 0.5rem;
-        background: oklch(1 0 0 / 3%);
-        border: 1px solid oklch(1 0 0 / 6%);
-        position: relative;
-    }
-
-    .user-card.mini {
         justify-content: center;
-        padding: 0.5rem 0;
+        position: relative;
+        cursor: default;
     }
 
-    .user-avatar-wrap {
+    .user-avatar {
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 1.875rem;
-        height: 1.875rem;
+        width: 2.125rem;
+        height: 2.125rem;
         border-radius: 999px;
         background: linear-gradient(135deg, oklch(0.3 0.1 270) 0%, oklch(0.2 0.05 260) 100%);
         border: 1px solid oklch(0.5 0.15 270 / 40%);
         flex-shrink: 0;
+        transition: transform 0.15s ease;
     }
 
-    .avatar-initials {
-        font-size: 0.625rem;
+    .user-avatar-btn:hover .user-avatar {
+        transform: scale(1.06);
+    }
+
+    .avatar-text {
+        font-size: 0.6875rem;
         font-weight: 700;
         color: oklch(0.9 0.05 270);
     }
@@ -489,30 +385,10 @@
         position: absolute;
         bottom: 0;
         right: 0;
-        width: 6px;
-        height: 6px;
+        width: 7px;
+        height: 7px;
         border-radius: 999px;
         background: #22c55e;
-        border: 1px solid oklch(0.155 0 0);
-    }
-
-    .user-details {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        white-space: nowrap;
-    }
-
-    .user-name {
-        font-size: 0.78125rem;
-        font-weight: 600;
-        color: oklch(0.95 0 0);
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .user-role {
-        font-size: 0.65625rem;
-        color: oklch(0.5 0 0);
+        border: 1.5px solid oklch(0.155 0 0);
     }
 </style>

@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { sidebarState } from "$lib/state/sidebar.svelte";
     import Sidebar from "./Sidebar.svelte";
     import Header from "./Header.svelte";
     import type { Snippet } from "svelte";
@@ -12,18 +11,15 @@
 </script>
 
 <div class="shell-root">
-    <!-- Persistent & Responsive Sidebar -->
+    <!-- Icon-Only Rail Sidebar -->
     <Sidebar />
 
     <!-- Main Content Area -->
-    <div
-        class="shell-main"
-        class:sidebar-collapsed={sidebarState.collapsed}
-    >
+    <div class="shell-main">
         <!-- Top Navbar -->
         <Header />
 
-        <!-- Page View Body -->
+        <!-- Page Content -->
         <main class="shell-content">
             {@render children()}
         </main>
@@ -44,21 +40,8 @@
         display: flex;
         flex-direction: column;
         min-width: 0;
-        margin-left: 16rem; /* Matches default sidebar width */
-        transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-left: 4.5rem; /* Aligned with icon-only rail width */
         min-height: 100dvh;
-    }
-
-    @media (min-width: 768px) {
-        .shell-main.sidebar-collapsed {
-            margin-left: 4.75rem; /* Matches collapsed mini rail width */
-        }
-    }
-
-    @media (max-width: 767px) {
-        .shell-main {
-            margin-left: 0 !important;
-        }
     }
 
     .shell-content {
