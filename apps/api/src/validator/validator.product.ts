@@ -8,6 +8,7 @@ export const createProductSchema = z.object({
     purchasePrice: z.coerce.number().min(0),
     sellingPrice: z.coerce.number().min(0),
     stock: z.coerce.number().int().min(0),
+    minStock: z.coerce.number().int().min(0).default(5).optional(),
 });
 
 export const updateProductSchema = createProductSchema.partial();

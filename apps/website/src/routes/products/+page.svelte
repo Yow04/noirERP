@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { PUBLIC_API_BASE_URL } from "$env/static/public";
     import { Button } from "$lib/components/ui/button";
+    import { StockStatusBadge } from "$lib/components/inventory";
 
     type Product = {
         id: string;
@@ -11,6 +12,7 @@
         purchasePrice: string | number;
         sellingPrice: string | number;
         stock: number;
+        minStock?: number;
         category: string | number;
         createdAt: string;
     };
@@ -103,7 +105,10 @@
             </p>
         </div>
 
-        <Button href="/products/new">Add Products</Button>
+        <div class="flex items-center gap-2">
+            <Button variant="outline" href="/inventory">Kelola Inventaris</Button>
+            <Button href="/products/new">Add Products</Button>
+        </div>
     </div>
 
     {#if error}
@@ -165,7 +170,15 @@
                             <td class="whitespace-nowrap px-4 py-3">
                                 {formatCurrency(product.sellingPrice)}
                             </td>
-                            <td class="px-4 py-3">{product.stock}</td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono">{product.stock}</span>
+                                    <StockStatusBadge
+                                        status={product.stock === 0 ? "OUT_OF_STOCK" : product.stock <= (product.minStock ?? 5) ? "LOW_STOCK" : "NORMAL"}
+                                        size="sm"
+                                    />
+                                </div>
+                            </td>
                             <td class="whitespace-nowrap px-4 py-3">
                                 <div class="flex justify-end gap-2">
                                     <Button

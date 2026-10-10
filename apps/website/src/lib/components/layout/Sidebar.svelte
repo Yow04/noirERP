@@ -4,6 +4,7 @@
     import {
         DashboardSpeed02Icon,
         PackageIcon,
+        PackageMovingIcon,
         Tag01Icon,
         UserGroupIcon,
     } from "@hugeicons/core-free-icons";
@@ -26,6 +27,11 @@
             title: "Produk",
             href: "/products",
             icon: PackageIcon,
+        },
+        {
+            title: "Inventaris",
+            href: "/inventory",
+            icon: PackageMovingIcon,
         },
         {
             title: "Kategori",

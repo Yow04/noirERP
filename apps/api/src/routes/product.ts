@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { desc, eq } from "drizzle-orm";
 
 import { db } from "../db";
-import { categories, products } from "../db/schema";
+import { categories, products, stockMutations } from "../db/schema";
 import { createProductSchema, updateProductSchema } from "../validator/validator.product";
 
 const productsRoutes = new Hono();
@@ -15,12 +15,14 @@ productsRoutes.get('/', async (c) => {
             .select({
                 id: products.id,
                 categoryId: products.categoryId,
+                categoryName: categories.name,
                 sku: products.sku,
                 name: products.name,
                 description: products.description,
                 purchasePrice: products.purchasePrice,
                 sellingPrice: products.sellingPrice,
                 stock: products.stock,
+                minStock: products.minStock,
                 createdAt: products.createdAt,
                 updatedAt: products.updatedAt,
             })
@@ -79,23 +81,41 @@ productsRoutes.post('/', zValidator('json', createProductSchema), async (c) => {
     const data = c.req.valid('json');
 
     try {
-        const result = await db
-            .insert(products)
-            .values({
-                categoryId: data.categoryId ?? null,
-                sku: data.sku,
-                name: data.name,
-                description: data.description || null,
-                purchasePrice: data.purchasePrice.toString(),
-                sellingPrice: data.sellingPrice.toString(),
-                stock: data.stock,
-            })
-            .returning();
+        const result = await db.transaction(async (tx) => {
+            const [created] = await tx
+                .insert(products)
+                .values({
+                    categoryId: data.categoryId ?? null,
+                    sku: data.sku,
+                    name: data.name,
+                    description: data.description || null,
+                    purchasePrice: data.purchasePrice.toString(),
+                    sellingPrice: data.sellingPrice.toString(),
+                    stock: data.stock,
+                    minStock: data.minStock ?? 5,
+                })
+                .returning();
+
+            // Jika stok awal > 0, otomatis catat mutasi stok INITIAL
+            if (data.stock > 0) {
+                await tx.insert(stockMutations).values({
+                    productId: created.id,
+                    type: 'INITIAL',
+                    quantity: data.stock,
+                    previousStock: 0,
+                    currentStock: data.stock,
+                    reference: 'INIT',
+                    notes: 'Stok awal saat pembuatan produk baru',
+                });
+            }
+
+            return created;
+        });
 
         return c.json({
             success: true,
             message: 'Product created successfully',
-            data: result[0],
+            data: result,
         }, 201);
     } catch (error) {
         console.error("Error creating product:", error);
@@ -119,13 +139,14 @@ productsRoutes.patch(
     zValidator("json", updateProductSchema),
     async (c) => {
         const id = c.req.param("id");
-        const { purchasePrice, sellingPrice, ...rest } = c.req.valid("json");
+        const { purchasePrice, sellingPrice, minStock, ...rest } = c.req.valid("json");
 
         try {
             const updateData = {
                 ...rest,
                 ...(purchasePrice !== undefined && { purchasePrice: String(purchasePrice) }),
                 ...(sellingPrice !== undefined && { sellingPrice: String(sellingPrice) }),
+                ...(minStock !== undefined && { minStock: Number(minStock) }),
                 updatedAt: new Date(),
             }
 

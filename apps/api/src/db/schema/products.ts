@@ -20,6 +20,7 @@ export const products = pgTable('products', {
     purchasePrice: numeric('purchase_price', { precision: 10, scale: 2 }).default('0').notNull(),
     sellingPrice: numeric('selling_price', { precision: 10, scale: 2 }).default('0').notNull(),
     stock: integer('stock').default(0).notNull(),
+    minStock: integer('min_stock').default(5).notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => [

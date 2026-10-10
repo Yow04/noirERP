@@ -14,6 +14,7 @@
         purchasePrice: string | number;
         sellingPrice: string | number;
         stock: number;
+        minStock?: number;
     };
 
     type Category = {
@@ -37,6 +38,7 @@
     let purchasePrice = $state("0");
     let sellingPrice = $state("0");
     let stock = $state("0");
+    let minStock = $state("5");
 
     $effect(() => {
         if (product) {
@@ -47,6 +49,7 @@
             purchasePrice = product.purchasePrice?.toString() ?? "0";
             sellingPrice = product.sellingPrice?.toString() ?? "0";
             stock = product.stock?.toString() ?? "0";
+            minStock = product.minStock?.toString() ?? "5";
         }
     });
 
@@ -99,6 +102,10 @@
         if (isNaN(stockNum) || stockNum < 0 || !Number.isInteger(stockNum))
             errors.stock = "Stok harus bilangan bulat positif";
 
+        const minStockNum = Number(minStock);
+        if (isNaN(minStockNum) || minStockNum < 0 || !Number.isInteger(minStockNum))
+            errors.minStock = "Stok minimum harus bilangan bulat non-negatif";
+
         fieldErrors = errors;
         return Object.keys(errors).length === 0;
     }
@@ -119,6 +126,7 @@
             purchasePrice: Number(purchasePrice),
             sellingPrice: Number(sellingPrice),
             stock: Number(stock),
+            minStock: Number(minStock),
         };
 
         try {
@@ -214,9 +222,9 @@
             </select>
         </div>
 
-        <!-- Stok -->
+        <!-- Stok / Stok Awal -->
         <div class="space-y-2">
-            <Label for="stock">Stok <span class="text-destructive">*</span></Label>
+            <Label for="stock">{isEdit ? "Stok Saat Ini" : "Stok Awal"} <span class="text-destructive">*</span></Label>
             <Input
                 id="stock"
                 type="number"
@@ -228,6 +236,27 @@
             />
             {#if fieldErrors.stock}
                 <p class="text-xs text-destructive">{fieldErrors.stock}</p>
+            {:else if !isEdit}
+                <p class="text-[11px] text-muted-foreground">Stok awal akan dicatat otomatis sebagai riwayat mutasi awal.</p>
+            {/if}
+        </div>
+
+        <!-- Aturan Stok Minimum -->
+        <div class="space-y-2">
+            <Label for="minStock">Aturan Stok Minimum (Reorder Point)</Label>
+            <Input
+                id="minStock"
+                type="number"
+                bind:value={minStock}
+                placeholder="5"
+                min="0"
+                step="1"
+                aria-invalid={!!fieldErrors.minStock}
+            />
+            {#if fieldErrors.minStock}
+                <p class="text-xs text-destructive">{fieldErrors.minStock}</p>
+            {:else}
+                <p class="text-[11px] text-muted-foreground">Peringatan otomatis saat stok ≤ batas ini.</p>
             {/if}
         </div>
 

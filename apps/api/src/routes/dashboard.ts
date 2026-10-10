@@ -42,11 +42,11 @@ dashboardRoutes.get("/", async (c) => {
             })
             .from(products);
 
-        // Low stock products (stock <= 5)
+        // Low stock products based on dynamic minStock rule (0 < stock <= minStock)
         const [lowStockCount] = await db
             .select({ count: count() })
             .from(products)
-            .where(sql`${products.stock} <= 5`);
+            .where(sql`${products.stock} <= ${products.minStock} AND ${products.stock} > 0`);
 
         // Out of stock products (stock = 0)
         const [outOfStockCount] = await db
