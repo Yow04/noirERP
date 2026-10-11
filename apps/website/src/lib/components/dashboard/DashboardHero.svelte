@@ -5,7 +5,6 @@
         PlusSignIcon,
         ArrowRight02Icon,
         PackageIcon,
-        ChartLineData02Icon,
     } from "@hugeicons/core-free-icons";
 
     type Props = {

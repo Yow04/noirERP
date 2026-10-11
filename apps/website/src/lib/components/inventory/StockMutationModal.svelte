@@ -46,7 +46,7 @@
     });
 
     // Kalkulasi preview perubahan stok
-    const preview = $derived(() => {
+    const preview = $derived.by(() => {
         if (!activeProduct) {
             return { valid: false, previous: 0, next: 0, delta: 0, warning: "" };
         }
@@ -95,9 +95,8 @@
             return;
         }
 
-        const p = preview();
-        if (!p.valid) {
-            error = p.warning || "Periksa kembali input kuantitas.";
+        if (!preview.valid) {
+            error = preview.warning || "Periksa kembali input kuantitas.";
             return;
         }
 
@@ -153,8 +152,14 @@
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-white/10 pb-4">
                 <div class="flex items-center gap-2.5">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
-                        <HugeiconsIcon icon={PackageReceiveIcon} size={18} strokeWidth={2} />
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg {mutationType === 'IN' ? 'bg-emerald-500/10 text-emerald-400' : mutationType === 'OUT' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'}">
+                        {#if mutationType === 'IN'}
+                            <HugeiconsIcon icon={PackageReceiveIcon} size={18} strokeWidth={2} />
+                        {:else if mutationType === 'OUT'}
+                            <HugeiconsIcon icon={PackageRemoveIcon} size={18} strokeWidth={2} />
+                        {:else}
+                            <HugeiconsIcon icon={PackageProcessIcon} size={18} strokeWidth={2} />
+                        {/if}
                     </div>
                     <div>
                         <h3 class="text-base font-semibold text-white">Catat Mutasi Stok</h3>
@@ -256,7 +261,7 @@
 
                 <!-- Live Preview Perubahan Stok -->
                 {#if activeProduct}
-                    {@const p = preview()}
+                    {@const p = preview}
                     <div class="rounded-xl border border-white/8 bg-white/[0.02] p-3.5 text-xs space-y-2">
                         <div class="flex items-center justify-between text-zinc-400">
                             <span>Perubahan Stok:</span>
@@ -305,7 +310,7 @@
                     <Button variant="outline" type="button" onclick={onClose} disabled={submitting}>
                         Batal
                     </Button>
-                    <Button type="submit" disabled={submitting || !preview().valid}>
+                    <Button type="submit" disabled={submitting || !preview.valid}>
                         {submitting ? "Memproses..." : "Simpan Mutasi"}
                     </Button>
                 </div>

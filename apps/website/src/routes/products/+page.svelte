@@ -3,6 +3,7 @@
     import { PUBLIC_API_BASE_URL } from "$env/static/public";
     import { Button } from "$lib/components/ui/button";
     import { StockStatusBadge } from "$lib/components/inventory";
+    import { formatCurrency } from "$lib/utils";
 
     type Product = {
         id: string;
@@ -67,7 +68,7 @@
                 );
             }
 
-            products = products.filter((products) => products.id !== id);
+            products = products.filter((p) => p.id !== id);
         } catch (err) {
             error =
                 err instanceof Error
@@ -76,14 +77,6 @@
         } finally {
             deletingId = null;
         }
-    }
-
-    function formatCurrency(value: string | number) {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            maximumFractionDigits: 2,
-        }).format(Number(value));
     }
 
     onMount(loadProducts);
