@@ -6,6 +6,8 @@ import { db } from "./db";
 import productsRoutes from "./routes/product";
 import dashboardRoutes from "./routes/dashboard";
 import inventoryRoutes from "./routes/inventory";
+import purchaseRoutes from "./routes/purchase";
+import salesRoutes from "./routes/sales";
 
 const app = new Hono()
 
@@ -66,6 +68,8 @@ app.get("/api/v1", (c) => {
 app.route('/api/v1/products', productsRoutes);
 app.route('/api/v1/dashboard', dashboardRoutes);
 app.route('/api/v1/inventory', inventoryRoutes);
+app.route('/api/v1/purchases', purchaseRoutes);
+app.route('/api/v1/sales', salesRoutes);
 
 export default {
   port: Number(process.env.API_PORT ?? "3000"),

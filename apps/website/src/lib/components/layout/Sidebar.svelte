@@ -7,6 +7,8 @@
         PackageMovingIcon,
         Tag01Icon,
         UserGroupIcon,
+        ShoppingCart01Icon,
+        Invoice01Icon,
     } from "@hugeicons/core-free-icons";
 
     type NavItem = {
@@ -22,6 +24,16 @@
             href: "/",
             icon: DashboardSpeed02Icon,
             matchExact: true,
+        },
+        {
+            title: "Penjualan",
+            href: "/sales",
+            icon: Invoice01Icon,
+        },
+        {
+            title: "Pembelian",
+            href: "/purchases",
+            icon: ShoppingCart01Icon,
         },
         {
             title: "Produk",

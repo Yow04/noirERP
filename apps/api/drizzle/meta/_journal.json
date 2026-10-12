@@ -8,6 +8,20 @@
       "when": 1790836583713,
       "tag": "0000_old_albert_cleary",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791781320841,
+      "tag": "0001_safe_mephistopheles",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791782109351,
+      "tag": "0002_sloppy_toxin",
+      "breakpoints": true
     }
   ]
 }
