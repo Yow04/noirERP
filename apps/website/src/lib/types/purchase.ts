@@ -56,3 +56,11 @@ export type CreatePurchaseOrderInput = {
     notes?: string | null;
     items: CreatePurchaseOrderItemInput[];
 };
+
+export type PurchaseProductOption = {
+    id: string;
+    name: string;
+    sku: string;
+    purchasePrice: number | string;
+    stock: number;
+};

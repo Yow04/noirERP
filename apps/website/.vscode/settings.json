@@ -1,5 +1,7 @@
 {
 	"files.associations": {
 		"*.css": "tailwindcss"
-	}
+	},
+	"editor.wordWrap": "on",
+	"editor.wordWrapColumn": 100
 }
