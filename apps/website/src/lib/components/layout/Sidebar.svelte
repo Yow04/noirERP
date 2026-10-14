@@ -1,5 +1,6 @@
 <script lang="ts">
     import { page } from "$app/state";
+    import { sidebarState } from "$lib/state/sidebar.svelte";
     import { HugeiconsIcon } from "@hugeicons/svelte";
     import {
         DashboardSpeed02Icon,
@@ -67,13 +68,81 @@
         }
         return currentPath.startsWith(item.href);
     }
+
+    let isResizing = $state(false);
+
+    function startResize(e: PointerEvent) {
+        e.preventDefault();
+        isResizing = true;
+        sidebarState.isDragging = true;
+
+        const startX = e.clientX;
+        const wasCollapsed = sidebarState.collapsed;
+        const startWidth = sidebarState.width;
+
+        function onPointerMove(moveEvent: PointerEvent) {
+            const deltaX = moveEvent.clientX - startX;
+            if (wasCollapsed) {
+                if (deltaX > 40) {
+                    sidebarState.setCollapsed(false);
+                    sidebarState.setWidth(Math.max(sidebarState.MIN_WIDTH, startWidth + deltaX));
+                }
+            } else {
+                const newWidth = startWidth + deltaX;
+                if (newWidth < 130) {
+                    sidebarState.setCollapsed(true);
+                } else {
+                    sidebarState.setWidth(newWidth);
+                }
+            }
+        }
+
+        function stopResize() {
+            isResizing = false;
+            sidebarState.isDragging = false;
+            window.removeEventListener("pointermove", onPointerMove);
+            window.removeEventListener("pointerup", stopResize);
+            window.removeEventListener("pointercancel", stopResize);
+        }
+
+        window.addEventListener("pointermove", onPointerMove);
+        window.addEventListener("pointerup", stopResize);
+        window.addEventListener("pointercancel", stopResize);
+    }
+
+    function resetWidth() {
+        if (sidebarState.collapsed) {
+            sidebarState.setCollapsed(false);
+            sidebarState.setWidth(sidebarState.DEFAULT_WIDTH);
+        } else {
+            sidebarState.setWidth(sidebarState.DEFAULT_WIDTH);
+        }
+    }
 </script>
 
-<!-- Permanent Icon-Only Rail Sidebar -->
-<aside class="sidebar-rail">
-    <!-- Brand Logo Icon -->
-    <div class="rail-header">
-        <a href="/" class="logo-link group" aria-label="noirERP Home">
+<!-- Mobile Overlay Backdrop -->
+{#if sidebarState.mobileOpen}
+    <div
+        class="mobile-backdrop"
+        onclick={() => sidebarState.closeMobile()}
+        onkeydown={(e) => e.key === "Escape" && sidebarState.closeMobile()}
+        role="button"
+        tabindex="-1"
+        aria-label="Tutup Menu Sidebar"
+    ></div>
+{/if}
+
+<!-- Collapsible / Resizable Sidebar -->
+<aside
+    class="sidebar-root"
+    class:collapsed={sidebarState.collapsed}
+    class:mobile-open={sidebarState.mobileOpen}
+    class:is-resizing={isResizing}
+    aria-label="Navigasi Utama"
+>
+    <!-- Brand Header -->
+    <div class="sidebar-header">
+        <a href="/" class="brand-link group" aria-label="noirERP Home">
             <div class="logo-box">
                 <svg
                     class="logo-icon"
@@ -95,23 +164,38 @@
                     <circle cx="23" cy="9" r="2" class="fill-indigo-300" />
                 </svg>
             </div>
-            <!-- Floating Tooltip -->
-            <span class="rail-tooltip">noirERP</span>
+
+            {#if !sidebarState.collapsed}
+                <div class="brand-info">
+                    <span class="brand-title">noir<span class="brand-accent">ERP</span></span>
+                    <span class="brand-badge">PRO</span>
+                </div>
+            {:else}
+                <!-- Floating Tooltip for collapsed mode -->
+                <span class="rail-tooltip">noirERP</span>
+            {/if}
         </a>
     </div>
 
-    <!-- Navigation Menu Icons -->
-    <nav class="rail-nav">
-        <!-- Main Navigation Items -->
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
+        <!-- Main Navigation Section -->
+        {#if !sidebarState.collapsed}
+            <div class="nav-section-label">Menu Utama</div>
+        {/if}
+
         <ul class="nav-list">
             {#each navItems as item}
                 {@const active = isActive(item)}
                 <li class="nav-item">
                     <a
                         href={item.href}
-                        class="rail-icon-btn group"
+                        class="nav-link group"
                         class:active
                         aria-label={item.title}
+                        onclick={() => {
+                            if (sidebarState.mobileOpen) sidebarState.closeMobile();
+                        }}
                     >
                         <span class="icon-wrap" class:active-icon={active}>
                             <HugeiconsIcon
@@ -121,12 +205,18 @@
                             />
                         </span>
 
-                        {#if active}
-                            <span class="active-pill-bar"></span>
+                        {#if !sidebarState.collapsed}
+                            <span class="nav-text">{item.title}</span>
+                            {#if active}
+                                <span class="active-dot"></span>
+                            {/if}
+                        {:else}
+                            {#if active}
+                                <span class="active-pill-bar"></span>
+                            {/if}
+                            <!-- Floating Tooltip -->
+                            <span class="rail-tooltip">{item.title}</span>
                         {/if}
-
-                        <!-- Floating Tooltip -->
-                        <span class="rail-tooltip">{item.title}</span>
                     </a>
                 </li>
             {/each}
@@ -134,16 +224,23 @@
 
         <div class="nav-divider"></div>
 
-        <!-- Management Navigation Items -->
+        <!-- Management Section -->
+        {#if !sidebarState.collapsed}
+            <div class="nav-section-label">Manajemen</div>
+        {/if}
+
         <ul class="nav-list">
             {#each managementItems as item}
                 {@const active = isActive(item)}
                 <li class="nav-item">
                     <a
                         href={item.href}
-                        class="rail-icon-btn group"
+                        class="nav-link group"
                         class:active
                         aria-label={item.title}
+                        onclick={() => {
+                            if (sidebarState.mobileOpen) sidebarState.closeMobile();
+                        }}
                     >
                         <span class="icon-wrap" class:active-icon={active}>
                             <HugeiconsIcon
@@ -153,66 +250,139 @@
                             />
                         </span>
 
-                        {#if active}
-                            <span class="active-pill-bar"></span>
+                        {#if !sidebarState.collapsed}
+                            <span class="nav-text">{item.title}</span>
+                            {#if active}
+                                <span class="active-dot"></span>
+                            {/if}
+                        {:else}
+                            {#if active}
+                                <span class="active-pill-bar"></span>
+                            {/if}
+                            <!-- Floating Tooltip -->
+                            <span class="rail-tooltip">{item.title}</span>
                         {/if}
-
-                        <!-- Floating Tooltip -->
-                        <span class="rail-tooltip">{item.title}</span>
                     </a>
                 </li>
             {/each}
         </ul>
     </nav>
 
-    <!-- Rail Footer: User Profile Avatar -->
-    <div class="rail-footer">
-        <div class="user-avatar-btn group" tabindex="0" role="button" aria-label="Profil Admin">
+    <!-- Footer: User Profile -->
+    <div class="sidebar-footer">
+        <div class="user-card group" tabindex="0" role="button" aria-label="Profil Admin">
             <div class="user-avatar">
                 <span class="avatar-text">AD</span>
                 <span class="online-dot"></span>
             </div>
-            <!-- Floating Tooltip -->
-            <span class="rail-tooltip">Admin noirERP</span>
+
+            {#if !sidebarState.collapsed}
+                <div class="user-details">
+                    <span class="user-name">Admin noirERP</span>
+                    <span class="user-role">Administrator</span>
+                </div>
+            {:else}
+                <!-- Floating Tooltip -->
+                <span class="rail-tooltip">Admin noirERP</span>
+            {/if}
         </div>
+    </div>
+
+    <!-- Edge Drag/Resize Handle -->
+    <div
+        class="sidebar-resizer"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Tarik untuk geser lebar sidebar"
+        title="Tarik untuk geser lebar sidebar (Klik 2x untuk reset)"
+        onpointerdown={startResize}
+        ondblclick={resetWidth}
+    >
+        <span class="resizer-visual-line"></span>
     </div>
 </aside>
 
 <style>
-    /* Fixed Icon-Only Rail Sidebar */
-    .sidebar-rail {
+    /* Mobile Backdrop */
+    .mobile-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: opacity 0.25s ease;
+    }
+
+    /* Collapsible / Resizable Sidebar Container */
+    .sidebar-root {
         position: fixed;
         top: 0;
         bottom: 0;
         left: 0;
         z-index: 50;
-        width: 4.5rem; /* 72px */
+        width: var(--sidebar-width, 16rem);
         display: flex;
         flex-direction: column;
-        align-items: center;
         background: oklch(0.155 0.005 260 / 96%);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-right: 1px solid oklch(1 0 0 / 8%);
+        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         user-select: none;
+        overflow: hidden;
+    }
+
+    .sidebar-root.is-resizing {
+        transition: none; /* Instant feedback when dragging */
+    }
+
+    /* Collapsed Rail on Desktop */
+    @media (min-width: 769px) {
+        .sidebar-root.collapsed {
+            width: 4.5rem !important; /* 72px */
+            align-items: center;
+        }
+    }
+
+    /* Mobile Drawer */
+    @media (max-width: 768px) {
+        .sidebar-root {
+            width: 16.5rem !important;
+            transform: translateX(-100%);
+            box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.85);
+        }
+
+        .sidebar-root.mobile-open {
+            transform: translateX(0);
+        }
     }
 
     /* Header */
-    .rail-header {
+    .sidebar-header {
         height: 3.75rem; /* 60px */
         display: flex;
         align-items: center;
-        justify-content: center;
         width: 100%;
+        padding: 0 1.25rem;
         border-bottom: 1px solid oklch(1 0 0 / 7%);
+        flex-shrink: 0;
+        overflow: hidden;
     }
 
-    .logo-link {
+    .sidebar-root.collapsed .sidebar-header {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .brand-link {
         display: flex;
         align-items: center;
-        justify-content: center;
-        position: relative;
+        gap: 0.75rem;
         text-decoration: none;
+        position: relative;
+        min-width: 0;
     }
 
     .logo-box {
@@ -222,10 +392,11 @@
         width: 2.25rem;
         height: 2.25rem;
         border-radius: 0.5rem;
+        flex-shrink: 0;
         transition: transform 0.2s ease;
     }
 
-    .logo-link:hover .logo-box {
+    .brand-link:hover .logo-box {
         transform: scale(1.08);
     }
 
@@ -234,62 +405,146 @@
         height: 2.25rem;
     }
 
-    /* Navigation */
-    .rail-nav {
-        flex: 1;
-        width: 100%;
-        padding: 1rem 0;
+    .brand-info {
         display: flex;
-        flex-direction: column;
         align-items: center;
         gap: 0.5rem;
-        overflow-y: auto;
+        white-space: nowrap;
     }
 
-    .rail-nav::-webkit-scrollbar {
-        width: 0;
+    .brand-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: oklch(0.98 0 0);
+    }
+
+    .brand-accent {
+        color: oklch(0.75 0.18 280);
+        font-weight: 800;
+    }
+
+    .brand-badge {
+        font-size: 0.625rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        padding: 0.125rem 0.375rem;
+        border-radius: 4px;
+        background: oklch(0.4 0.18 270 / 25%);
+        border: 1px solid oklch(0.6 0.18 270 / 35%);
+        color: oklch(0.85 0.15 270);
+    }
+
+    /* Navigation */
+    .sidebar-nav {
+        flex: 1;
+        width: 100%;
+        padding: 1rem 0.625rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .sidebar-root.collapsed .sidebar-nav {
+        padding: 1rem 0;
+        align-items: center;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+        width: 3px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+        background: oklch(1 0 0 / 12%);
+        border-radius: 3px;
+    }
+
+    .nav-section-label {
+        font-size: 0.65625rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: oklch(0.48 0 0);
+        padding: 0.5rem 0.75rem 0.25rem 0.75rem;
+        white-space: nowrap;
     }
 
     .nav-list {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 0.375rem;
+        gap: 0.25rem;
         list-style: none;
         padding: 0;
         margin: 0;
         width: 100%;
     }
 
+    .sidebar-root.collapsed .nav-list {
+        align-items: center;
+        gap: 0.375rem;
+    }
+
     .nav-item {
         position: relative;
         display: flex;
         align-items: center;
-        justify-content: center;
         width: 100%;
     }
 
-    .rail-icon-btn {
+    .sidebar-root.collapsed .nav-item {
+        justify-content: center;
+    }
+
+    /* Link in Expanded Mode */
+    .nav-link {
         display: flex;
         align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.5625rem 0.75rem;
+        border-radius: 0.5rem;
+        color: oklch(0.68 0 0);
+        text-decoration: none;
+        font-size: 0.84375rem;
+        font-weight: 500;
+        position: relative;
+        transition: all 0.15s ease-in-out;
+        white-space: nowrap;
+    }
+
+    /* Link in Collapsed Rail Mode */
+    .sidebar-root.collapsed .nav-link {
         justify-content: center;
         width: 2.75rem;
         height: 2.75rem;
+        padding: 0;
         border-radius: 0.625rem;
-        color: oklch(0.65 0 0);
-        text-decoration: none;
-        position: relative;
-        transition: all 0.15s ease-in-out;
     }
 
-    .rail-icon-btn:hover {
+    .nav-link:hover {
         color: oklch(0.98 0 0);
         background: oklch(1 0 0 / 6%);
+    }
+
+    .sidebar-root.collapsed .nav-link:hover {
         transform: scale(1.04);
     }
 
-    .rail-icon-btn.active {
+    .nav-link.active {
         color: #ffffff;
+        background: linear-gradient(
+            90deg,
+            oklch(0.38 0.16 270 / 35%) 0%,
+            oklch(0.25 0.08 270 / 15%) 100%
+        );
+        border: 1px solid oklch(0.55 0.18 270 / 30%);
+        box-shadow: 0 4px 12px oklch(0.35 0.15 270 / 15%);
+        font-weight: 600;
+    }
+
+    .sidebar-root.collapsed .nav-link.active {
         background: linear-gradient(
             135deg,
             oklch(0.38 0.16 270 / 40%) 0%,
@@ -303,14 +558,35 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform 0.15s ease;
+        flex-shrink: 0;
+        transition: transform 0.15s ease, color 0.15s ease;
     }
 
     .icon-wrap.active-icon {
         color: oklch(0.85 0.18 270);
     }
 
-    /* Left pill indicator bar for active item */
+    .nav-link:hover .icon-wrap {
+        transform: scale(1.06);
+    }
+
+    .nav-text {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Active Indicators */
+    .active-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: oklch(0.78 0.18 270);
+        box-shadow: 0 0 8px oklch(0.78 0.18 270);
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+
     .active-pill-bar {
         position: absolute;
         left: 0.125rem;
@@ -324,13 +600,18 @@
     }
 
     .nav-divider {
-        width: 1.75rem;
+        width: calc(100% - 1.5rem);
         height: 1px;
-        background: oklch(1 0 0 / 8%);
-        margin: 0.25rem 0;
+        background: oklch(1 0 0 / 7%);
+        margin: 0.5rem auto;
     }
 
-    /* Tooltip */
+    .sidebar-root.collapsed .nav-divider {
+        width: 1.75rem;
+        margin: 0.25rem auto;
+    }
+
+    /* Floating Tooltip (Collapsed Mode) */
     .rail-tooltip {
         position: absolute;
         left: 100%;
@@ -352,27 +633,51 @@
         z-index: 60;
     }
 
-    .group:hover .rail-tooltip {
+    .sidebar-root.collapsed .group:hover .rail-tooltip {
         opacity: 1;
         transform: translateY(-50%) scale(1);
     }
 
-    /* Footer */
-    .rail-footer {
-        padding: 1rem 0;
+    /* Footer: User Profile */
+    .sidebar-footer {
+        padding: 0.875rem 0.75rem;
         border-top: 1px solid oklch(1 0 0 / 7%);
         width: 100%;
         display: flex;
-        justify-content: center;
         background: oklch(0.145 0 0 / 30%);
+        flex-shrink: 0;
     }
 
-    .user-avatar-btn {
+    .sidebar-root.collapsed .sidebar-footer {
+        padding: 1rem 0;
+        justify-content: center;
+    }
+
+    .user-card {
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.5rem 0.625rem;
+        border-radius: 0.5rem;
+        background: oklch(1 0 0 / 3%);
+        border: 1px solid oklch(1 0 0 / 6%);
         position: relative;
         cursor: default;
+        transition: all 0.15s ease;
+    }
+
+    .user-card:hover {
+        background: oklch(1 0 0 / 6%);
+        border-color: oklch(1 0 0 / 10%);
+    }
+
+    .sidebar-root.collapsed .user-card {
+        justify-content: center;
+        width: auto;
+        padding: 0;
+        background: transparent;
+        border: none;
     }
 
     .user-avatar {
@@ -389,7 +694,7 @@
         transition: transform 0.15s ease;
     }
 
-    .user-avatar-btn:hover .user-avatar {
+    .user-card:hover .user-avatar {
         transform: scale(1.06);
     }
 
@@ -408,5 +713,59 @@
         border-radius: 999px;
         background: #22c55e;
         border: 1.5px solid oklch(0.155 0 0);
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .user-name {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: oklch(0.95 0 0);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-role {
+        font-size: 0.6875rem;
+        color: oklch(0.52 0 0);
+    }
+
+    /* Edge Resizer Handle */
+    .sidebar-resizer {
+        position: absolute;
+        top: 0;
+        right: -4px;
+        bottom: 0;
+        width: 8px;
+        cursor: col-resize;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: none;
+    }
+
+    .resizer-visual-line {
+        width: 2px;
+        height: 100%;
+        background: transparent;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .sidebar-resizer:hover .resizer-visual-line,
+    .sidebar-root.is-resizing .resizer-visual-line {
+        background: oklch(0.75 0.18 270 / 70%);
+        box-shadow: 0 0 8px oklch(0.75 0.18 270 / 60%);
+    }
+
+    @media (max-width: 768px) {
+        .sidebar-resizer {
+            display: none;
+        }
     }
 </style>

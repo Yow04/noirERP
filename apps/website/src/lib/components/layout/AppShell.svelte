@@ -1,6 +1,7 @@
 <script lang="ts">
     import Sidebar from "./Sidebar.svelte";
     import Header from "./Header.svelte";
+    import { sidebarState } from "$lib/state/sidebar.svelte";
     import type { Snippet } from "svelte";
 
     type Props = {
@@ -8,14 +9,23 @@
     };
 
     let { children }: Props = $props();
+
+    let sidebarWidth = $derived(sidebarState.width);
 </script>
 
-<div class="shell-root">
-    <!-- Icon-Only Rail Sidebar -->
+<div
+    class="shell-root"
+    class:sidebar-collapsed={sidebarState.collapsed}
+    style="--sidebar-width: {sidebarWidth}px;"
+>
+    <!-- Collapsible & Resizable Sidebar -->
     <Sidebar />
 
     <!-- Main Content Area -->
-    <div class="shell-main">
+    <div
+        class="shell-main"
+        class:is-dragging={sidebarState.isDragging}
+    >
         <!-- Top Navbar -->
         <Header />
 
@@ -40,8 +50,19 @@
         display: flex;
         flex-direction: column;
         min-width: 0;
-        margin-left: 4.5rem; /* Aligned with icon-only rail width */
+        margin-left: var(--sidebar-width, 4.5rem);
         min-height: 100dvh;
+        transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .shell-main.is-dragging {
+        transition: none;
+    }
+
+    @media (max-width: 768px) {
+        .shell-main {
+            margin-left: 0 !important;
+        }
     }
 
     .shell-content {
@@ -51,3 +72,4 @@
         flex-direction: column;
     }
 </style>
+

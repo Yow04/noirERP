@@ -1,5 +1,15 @@
 <script lang="ts">
     import { page } from "$app/state";
+    import { sidebarState } from "$lib/state/sidebar.svelte";
+    import { HugeiconsIcon } from "@hugeicons/svelte";
+    import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+
+    let isExpanded = $derived.by(() => {
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+            return sidebarState.mobileOpen;
+        }
+        return !sidebarState.collapsed;
+    });
 
     const breadcrumbData = $derived.by(() => {
         const path = page.url.pathname;
@@ -7,6 +17,18 @@
             return {
                 title: "Dashboard",
                 parent: "Overview",
+            };
+        }
+        if (path.startsWith("/sales")) {
+            return {
+                title: "Penjualan",
+                parent: "Transaksi",
+            };
+        }
+        if (path.startsWith("/purchases")) {
+            return {
+                title: "Pembelian",
+                parent: "Transaksi",
             };
         }
         if (path.startsWith("/products/new")) {
@@ -25,6 +47,12 @@
             return {
                 title: "Produk",
                 parent: "Katalog",
+            };
+        }
+        if (path.startsWith("/inventory")) {
+            return {
+                title: "Inventaris",
+                parent: "Logistik",
             };
         }
         if (path.startsWith("/categories")) {
@@ -48,6 +76,28 @@
 
 <header class="header-root">
     <div class="header-left">
+        <!-- Single Universal Toggle Button with Directional Icon -->
+        <button
+            type="button"
+            class="sidebar-toggle-btn"
+            aria-label={isExpanded ? "Ciutkan Sidebar" : "Perluas Sidebar"}
+            title={isExpanded ? "Ciutkan Sidebar" : "Perluas Sidebar"}
+            onclick={() => sidebarState.toggle()}
+        >
+            <span class="toggle-icon-wrap" class:is-expanded={isExpanded}>
+                <HugeiconsIcon
+                    icon={ArrowRight01Icon}
+                    size={18}
+                    strokeWidth={2.2}
+                />
+            </span>
+            <span class="sr-only">
+                {isExpanded ? "Ciutkan Sidebar" : "Perluas Sidebar"}
+            </span>
+        </button>
+
+        <div class="header-divider"></div>
+
         <!-- Breadcrumb Lokasi Bersih & Minimalis -->
         <nav class="breadcrumb-container" aria-label="Breadcrumb">
             <div class="breadcrumb-trail">
@@ -77,7 +127,7 @@
         justify-content: space-between;
         gap: 1rem;
         height: 3.75rem; /* 60px */
-        padding: 0 1.5rem;
+        padding: 0 1.25rem;
         background: oklch(0.145 0 0 / 85%);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
@@ -86,7 +136,7 @@
 
     @media (max-width: 768px) {
         .header-root {
-            padding: 0 1rem;
+            padding: 0 0.875rem;
             height: 3.5rem;
         }
     }
@@ -94,7 +144,60 @@
     .header-left {
         display: flex;
         align-items: center;
+        gap: 0.75rem;
         min-width: 0;
+    }
+
+    /* Single Universal Sidebar Toggle Button */
+    .sidebar-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.125rem; /* 34px */
+        height: 2.125rem;
+        border-radius: 0.5rem;
+        background: oklch(1 0 0 / 4%);
+        border: 1px solid oklch(1 0 0 / 9%);
+        color: oklch(0.78 0 0);
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0;
+    }
+
+    .sidebar-toggle-btn:hover {
+        background: oklch(1 0 0 / 8%);
+        border-color: oklch(1 0 0 / 18%);
+        color: #ffffff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar-toggle-btn:active {
+        transform: scale(0.94);
+    }
+
+    .sidebar-toggle-btn:focus-visible {
+        outline: 2px solid oklch(0.75 0.18 270);
+        outline-offset: 2px;
+    }
+
+    .toggle-icon-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* When expanded ("sudah meluas"), icon rotates 180deg facing opposite direction (left) */
+    .toggle-icon-wrap.is-expanded {
+        transform: rotate(180deg);
+    }
+
+    .header-divider {
+        width: 1px;
+        height: 1.125rem;
+        background: oklch(1 0 0 / 8%);
+        flex-shrink: 0;
     }
 
     /* Breadcrumbs */
@@ -160,3 +263,4 @@
         box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
     }
 </style>
+
