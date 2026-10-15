@@ -5,3 +5,5 @@ export { default as FinancialOverviewCard } from "./FinancialOverviewCard.svelte
 export { default as StockAlertsCard } from "./StockAlertsCard.svelte";
 export { default as RecentProductsCard } from "./RecentProductsCard.svelte";
 export { default as DashboardSkeleton } from "./DashboardSkeleton.svelte";
+export { default as TransactionTrendChart } from "./TransactionTrendChart.svelte";
+export { default as FinancialComparisonChart } from "./FinancialComparisonChart.svelte";

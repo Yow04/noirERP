@@ -7,6 +7,35 @@ export type RecentProduct = {
     createdAt: string;
 };
 
+export type DailyTrend = {
+    date: string;
+    label: string;
+    dayName: string;
+    sales: number;
+    purchases: number;
+};
+
+export type FinancialComparison = {
+    inventoryValue: number;
+    potentialRevenue: number;
+    realizedRevenue: number;
+    totalPurchases: number;
+    estimatedMargin: number;
+    marginPercentage: number;
+    realizationRate: number;
+};
+
+export type DashboardAnalytics = {
+    days: number;
+    trend: DailyTrend[];
+    summary: {
+        totalSalesPeriod: number;
+        totalPurchasesPeriod: number;
+        netCashflow: number;
+    };
+    financialComparison: FinancialComparison;
+};
+
 export type DashboardData = {
     totalProducts: number;
     totalCategories: number;
@@ -17,4 +46,5 @@ export type DashboardData = {
     lowStockCount: number;
     outOfStockCount: number;
     recentProducts: RecentProduct[];
+    analytics?: DashboardAnalytics;
 };
