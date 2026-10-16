@@ -7,12 +7,12 @@ import * as schema from './schema';
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
 if (!connectionString) {
-    throw new Error("DATABASE_URL atau POSTGRES_URL belum dikonfigurasi");
+    console.warn("⚠️ PERINGATAN: DATABASE_URL atau POSTGRES_URL belum dikonfigurasi di Environment Variables!");
 }
 
-// Nonaktifkan prepared statements agar kompatibel dengan Supabase Transaction Pooler (port 6543)
-// dan tetap kompatibel dengan PostgreSQL lokal
-const client = postgres(connectionString, {
+// Nonaktifkan prepared statements agar kompatibel dengan Serverless Connection Pooler (Vercel/Neon/Supabase)
+// dan fallback agar serverless function tidak langsung crash saat startup
+const client = postgres(connectionString || "postgresql://localhost:5432/noirDatabase", {
     prepare: false,
 });
 
