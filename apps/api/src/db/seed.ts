@@ -9,7 +9,7 @@ import {
     purchaseOrderItems,
     salesOrders,
     salesOrderItems,
-} from "./schema";
+} from "./schema/index";
 import { sql } from "drizzle-orm";
 
 export async function seed() {

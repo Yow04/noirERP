@@ -1,11 +1,11 @@
 import { eq, desc, sql, and, or, ilike } from "drizzle-orm";
-import { db } from "../db";
+import { db } from "../db/index";
 import {
     purchaseOrders,
     purchaseOrderItems,
     suppliers,
     products,
-} from "../db/schema";
+} from "../db/schema/index";
 import { InventoryService } from "./inventory.service";
 
 export type PurchaseStatus = "DRAFT" | "RECEIVED" | "CANCELLED";
