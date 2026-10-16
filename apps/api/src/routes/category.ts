@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { desc, eq, sql } from "drizzle-orm";
-import { db } from "../db";
-import { categories, products } from "../db/schema";
+import { db } from "../db/index";
+import { categories, products } from "../db/schema/index";
 
 const categoryRoutes = new Hono();
 

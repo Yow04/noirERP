@@ -2,7 +2,7 @@ import "dotenv/config";
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { sql } from "drizzle-orm";
-import { db } from "./db";
+import { db } from "./db/index";
 import productsRoutes from "./routes/product";
 import dashboardRoutes from "./routes/dashboard";
 import inventoryRoutes from "./routes/inventory";

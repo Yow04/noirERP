@@ -1,6 +1,6 @@
 import { eq, desc, sql, and, or, ilike, lte, gt } from "drizzle-orm";
-import { db } from "../db";
-import { products, stockMutations, categories } from "../db/schema";
+import { db } from "../db/index";
+import { products, stockMutations, categories } from "../db/schema/index";
 
 export type StockMutationType = "INITIAL" | "IN" | "OUT" | "ADJUSTMENT";
 

@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { desc, eq } from "drizzle-orm";
 
-import { db } from "../db";
-import { categories, products, stockMutations } from "../db/schema";
+import { db } from "../db/index";
+import { categories, products, stockMutations } from "../db/schema/index";
 import { createProductSchema, updateProductSchema } from "../validator/validator.product";
 
 const productsRoutes = new Hono();
