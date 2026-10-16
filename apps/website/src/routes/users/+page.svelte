@@ -1,11 +1,21 @@
 <script lang="ts">
+    import { onMount } from "svelte";
+    import { PUBLIC_API_BASE_URL } from "$env/static/public";
     import { Button } from "$lib/components/ui/button";
     import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "$lib/components/ui/card";
     import { HugeiconsIcon } from "@hugeicons/svelte";
     import { UserGroupIcon, PlusSignIcon, UserIcon } from "@hugeicons/core-free-icons";
 
-    // Demo / default current users
-    const sampleUsers = [
+    type UserItem = {
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        status?: string;
+    };
+
+    // Default users as fallback
+    const fallbackUsers: UserItem[] = [
         {
             id: "1",
             name: "Admin noirERP",
@@ -15,12 +25,51 @@
         },
         {
             id: "2",
-            name: "Staff Gudang",
+            name: "Staff Gudang & Logistik",
             email: "inventory@noirerp.dev",
             role: "Staff",
             status: "Aktif",
         },
+        {
+            id: "3",
+            name: "Sales Representative",
+            email: "sales@noirerp.dev",
+            role: "Staff",
+            status: "Aktif",
+        },
+        {
+            id: "4",
+            name: "Operational Manager",
+            email: "manager@noirerp.dev",
+            role: "Admin",
+            status: "Aktif",
+        },
     ];
+
+    let usersList = $state<UserItem[]>(fallbackUsers);
+    let loading = $state(true);
+
+    async function loadUsers() {
+        try {
+            const res = await fetch(`${PUBLIC_API_BASE_URL}/users`);
+            const json = await res.json();
+            if (res.ok && json.success && json.data?.length > 0) {
+                usersList = json.data.map((u: any) => ({
+                    id: u.id,
+                    name: u.name,
+                    email: u.email,
+                    role: u.role === "admin" ? "Admin" : "Staff",
+                    status: "Aktif",
+                }));
+            }
+        } catch {
+            // Silently fallback to fallbackUsers
+        } finally {
+            loading = false;
+        }
+    }
+
+    onMount(loadUsers);
 </script>
 
 <svelte:head>
@@ -60,7 +109,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-white/5">
-                {#each sampleUsers as user (user.id)}
+                {#each usersList as user (user.id)}
                     <tr class="hover:bg-white/[0.02] transition-colors">
                         <td class="px-5 py-4 font-medium flex items-center gap-3">
                             <div class="flex h-9 w-9 items-center justify-center rounded-full bg-violet-600/20 text-violet-300 font-semibold text-xs border border-violet-500/30">

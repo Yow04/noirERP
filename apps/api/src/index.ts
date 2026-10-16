@@ -8,13 +8,16 @@ import dashboardRoutes from "./routes/dashboard";
 import inventoryRoutes from "./routes/inventory";
 import purchaseRoutes from "./routes/purchase";
 import salesRoutes from "./routes/sales";
+import categoryRoutes from "./routes/category";
+import userRoutes from "./routes/user";
+import { seed } from "./db/seed";
 
 const app = new Hono()
 
 app.use(
   "/api/*",
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin) => origin || "*",
     allowMethods: [
       "GET",
       "POST",
@@ -65,11 +68,31 @@ app.get("/api/v1", (c) => {
   });
 });
 
+app.route('/api/v1/categories', categoryRoutes);
 app.route('/api/v1/products', productsRoutes);
 app.route('/api/v1/dashboard', dashboardRoutes);
 app.route('/api/v1/inventory', inventoryRoutes);
 app.route('/api/v1/purchases', purchaseRoutes);
 app.route('/api/v1/sales', salesRoutes);
+app.route('/api/v1/users', userRoutes);
+
+// Endpoint khusus untuk mempermudah inisialisasi dummy data di environment deployment/preview
+app.post('/api/v1/seed', async (c) => {
+  try {
+    await seed();
+    return c.json({
+      success: true,
+      message: "Database dummy data seeded successfully for deployment preview",
+    }, 200);
+  } catch (error) {
+    console.error("Seed error:", error);
+    return c.json({
+      success: false,
+      message: "Failed to seed dummy data",
+      error: error instanceof Error ? error.message : String(error),
+    }, 500);
+  }
+});
 
 export default {
   port: Number(process.env.API_PORT ?? "3000"),

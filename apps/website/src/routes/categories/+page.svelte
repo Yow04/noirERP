@@ -13,6 +13,34 @@
         createdAt?: string;
     };
 
+    const fallbackCategories: Category[] = [
+        {
+            id: "cat-1",
+            name: "Pakaian & Mode",
+            description: "Koleksi pakaian kasual, outerwear, dan streetwear monokrom premium noirERP",
+        },
+        {
+            id: "cat-2",
+            name: "Sepatu & Alas Kaki",
+            description: "Sneakers minimalis, loafers kulit, dan boots tahan cuaca",
+        },
+        {
+            id: "cat-3",
+            name: "Aksesoris & Tas",
+            description: "Tas selempang kedap air, dompet kulit saffiano, dan kacamata polarized",
+        },
+        {
+            id: "cat-4",
+            name: "Elektronik & Audio",
+            description: "Headphone wireless ANC, mechanical keyboard, dan charging pad ergonomis",
+        },
+        {
+            id: "cat-5",
+            name: "Gaya Hidup & Rumah",
+            description: "Tumbler isolasi termal, diffuser aromaterapi, dan aksesoris meja minimalis",
+        },
+    ];
+
     let categories: Category[] = $state([]);
     let loading = $state(true);
     let error = $state("");
@@ -23,11 +51,13 @@
         try {
             const response = await fetch(`${PUBLIC_API_BASE_URL}/categories`);
             const result = await response.json();
-            if (response.ok && result.success) {
-                categories = result.data ?? [];
+            if (response.ok && result.success && result.data?.length > 0) {
+                categories = result.data;
+            } else {
+                categories = fallbackCategories;
             }
         } catch (err) {
-            // API endpoint might not be ready yet
+            categories = fallbackCategories;
         } finally {
             loading = false;
         }
