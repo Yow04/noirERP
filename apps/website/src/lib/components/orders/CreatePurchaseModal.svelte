@@ -50,6 +50,8 @@
         )
     );
 
+    import { mockSuppliers, mockProducts } from "$lib/mockData";
+
     async function loadInitialData() {
         loadingData = true;
         try {
@@ -61,20 +63,39 @@
             const supJson = await supRes.json();
             const prodJson = await prodRes.json();
 
-            if (supRes.ok && supJson.success) {
-                suppliers = supJson.data ?? [];
+            if (supRes.ok && supJson.success && supJson.data?.length > 0) {
+                suppliers = supJson.data;
+            } else {
+                suppliers = mockSuppliers;
             }
-            if (prodRes.ok && prodJson.success) {
-                products = (prodJson.data ?? []).map((p: any) => ({
+
+            if (prodRes.ok && prodJson.success && prodJson.data?.length > 0) {
+                products = prodJson.data.map((p: any) => ({
                     id: p.id,
                     name: p.name,
                     sku: p.sku,
                     purchasePrice: Number(p.purchasePrice ?? 0),
                     stock: p.stock ?? 0,
                 }));
+            } else {
+                products = mockProducts.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    sku: p.sku,
+                    purchasePrice: Number(p.purchasePrice),
+                    stock: p.stock,
+                }));
             }
-        } catch (err) {
-            console.error("Gagal mengambil data untuk form PO:", err);
+        } catch {
+            // Live Preview Fallback
+            suppliers = mockSuppliers;
+            products = mockProducts.map((p) => ({
+                id: p.id,
+                name: p.name,
+                sku: p.sku,
+                purchasePrice: Number(p.purchasePrice),
+                stock: p.stock,
+            }));
         } finally {
             loadingData = false;
         }
@@ -166,6 +187,26 @@
             onSuccess(json.data);
             onClose();
         } catch (err) {
+            // Live Preview Demo di Vercel: simulasikan sukses
+            if (err instanceof TypeError || (err instanceof Error && err.message.includes("fetch"))) {
+                const sup = suppliers.find((s) => s.id === selectedSupplierId);
+                const mockNewPO = {
+                    id: `po-demo-${Date.now()}`,
+                    orderNumber: `PO-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-9999`,
+                    supplierId: selectedSupplierId || null,
+                    supplierName: sup ? sup.name : "Supplier Demo",
+                    status: "DRAFT",
+                    notes: notes || "Pesanan dibuat dalam mode demo",
+                    totalAmount: grandTotal,
+                    totalItems: items.length,
+                    receivedAt: null,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                };
+                onSuccess(mockNewPO);
+                onClose();
+                return;
+            }
             error =
                 err instanceof Error
                     ? err.message

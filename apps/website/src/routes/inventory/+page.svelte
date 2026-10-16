@@ -47,6 +47,12 @@
     let isMinStockModalOpen = $state(false);
     let selectedItemForAction: InventoryItem | null = $state(null);
 
+    import {
+        mockInventorySummary,
+        mockInventoryItems,
+        mockStockMutations,
+    } from "$lib/mockData";
+
     // Ambil data ringkasan dan produk inventaris
     async function loadInventoryData() {
         loading = true;
@@ -62,12 +68,19 @@
 
             if (sumRes.ok && sumJson.success) {
                 summary = sumJson.data;
+            } else {
+                summary = mockInventorySummary;
             }
+
             if (itemsRes.ok && itemsJson.success) {
                 items = itemsJson.data ?? [];
+            } else {
+                items = mockInventoryItems;
             }
-        } catch (err) {
-            error = err instanceof Error ? err.message : "Gagal memuat data inventaris";
+        } catch {
+            // Live Preview Fallback
+            summary = mockInventorySummary;
+            items = mockInventoryItems;
         } finally {
             loading = false;
         }
@@ -81,9 +94,11 @@
             const result = await response.json();
             if (response.ok && result.success) {
                 mutations = result.data ?? [];
+            } else {
+                mutations = mockStockMutations;
             }
-        } catch (err) {
-            console.error("Gagal memuat mutasi:", err);
+        } catch {
+            mutations = mockStockMutations;
         } finally {
             loadingMutations = false;
         }
