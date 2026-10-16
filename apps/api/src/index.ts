@@ -95,9 +95,4 @@ app.post('/api/v1/seed', async (c) => {
 });
 
 export { app };
-
-export default {
-  port: Number(process.env.API_PORT ?? process.env.PORT ?? "3000"),
-  hostname: process.env.API_HOST ?? "127.0.0.1",
-  fetch: app.fetch,
-};
+export default app;
