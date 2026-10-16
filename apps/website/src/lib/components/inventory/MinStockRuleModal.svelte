@@ -54,6 +54,12 @@
             onSuccess(result.data);
             onClose();
         } catch (err) {
+            // Live Preview Demo di Vercel: simulasikan sukses
+            if (err instanceof TypeError || (err instanceof Error && err.message.includes("fetch"))) {
+                onSuccess({ ...item, minStock: Number(minStockValue) });
+                onClose();
+                return;
+            }
             error = err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan aturan.";
         } finally {
             saving = false;

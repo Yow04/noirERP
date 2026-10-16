@@ -37,6 +37,8 @@
     let isDetailModalOpen = $state(false);
     let selectedOrderId = $state<string | null>(null);
 
+    import { mockSalesSummary, mockSalesOrders } from "$lib/mockData";
+
     async function loadData() {
         loading = true;
         error = "";
@@ -51,12 +53,19 @@
 
             if (sumRes.ok && sumJson.success) {
                 summary = sumJson.data;
+            } else {
+                summary = mockSalesSummary;
             }
+
             if (ordRes.ok && ordJson.success) {
                 orders = ordJson.data ?? [];
+            } else {
+                orders = mockSalesOrders;
             }
-        } catch (err) {
-            error = err instanceof Error ? err.message : "Gagal memuat data penjualan";
+        } catch {
+            // Live Preview Fallback
+            summary = mockSalesSummary;
+            orders = mockSalesOrders;
         } finally {
             loading = false;
         }

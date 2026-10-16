@@ -49,23 +49,40 @@
     let submitting = $state(false);
     let error = $state("");
 
+    import { mockProducts } from "$lib/mockData";
+
     // Ambil data produk saat modal dibuka
     async function loadProducts() {
         loadingData = true;
         try {
             const res = await fetch(`${PUBLIC_API_BASE_URL}/inventory/items`);
             const json = await res.json();
-            if (res.ok && json.success) {
-                products = (json.data ?? []).map((p: any) => ({
+            if (res.ok && json.success && json.data?.length > 0) {
+                products = json.data.map((p: any) => ({
                     id: p.id,
                     name: p.name,
                     sku: p.sku,
                     sellingPrice: Number(p.sellingPrice ?? 0),
                     stock: p.stock ?? 0,
                 }));
+            } else {
+                products = mockProducts.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    sku: p.sku,
+                    sellingPrice: Number(p.sellingPrice),
+                    stock: p.stock,
+                }));
             }
-        } catch (err) {
-            console.error("Gagal mengambil data produk untuk penjualan:", err);
+        } catch {
+            // Live Preview Fallback
+            products = mockProducts.map((p) => ({
+                id: p.id,
+                name: p.name,
+                sku: p.sku,
+                sellingPrice: Number(p.sellingPrice),
+                stock: p.stock,
+            }));
         } finally {
             loadingData = false;
         }
@@ -163,6 +180,28 @@
             onSuccess(json.data);
             onClose();
         } catch (err) {
+            // Live Preview Demo di Vercel: simulasikan sukses
+            if (err instanceof TypeError || (err instanceof Error && err.message.includes("fetch"))) {
+                const grandTotal = items.reduce(
+                    (sum, item) => sum + (item.quantity * item.unitPrice || 0),
+                    0
+                );
+                const mockNewSO = {
+                    id: `so-demo-${Date.now()}`,
+                    orderNumber: `SO-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-9999`,
+                    customerName: customerName.trim() || "Pelanggan Demo",
+                    status: "DRAFT",
+                    notes: notes || "Pesanan dibuat dalam mode demo",
+                    totalAmount: grandTotal,
+                    totalItems: items.length,
+                    completedAt: null,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                };
+                onSuccess(mockNewSO);
+                onClose();
+                return;
+            }
             error = err instanceof Error ? err.message : "Terjadi kesalahan sistem";
         } finally {
             submitting = false;

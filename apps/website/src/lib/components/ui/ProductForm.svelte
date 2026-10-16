@@ -57,6 +57,8 @@
     let submitting = $state(false);
     let error = $state("");
     let fieldErrors: Record<string, string> = $state({});
+    import { mockCategories } from "$lib/mockData";
+
     let categories: Category[] = $state([]);
     let loadingCategories = $state(true);
 
@@ -67,11 +69,13 @@
             );
             const result = await response.json();
 
-            if (response.ok && result.success) {
-                categories = result.data ?? [];
+            if (response.ok && result.success && result.data?.length > 0) {
+                categories = result.data;
+            } else {
+                categories = mockCategories;
             }
         } catch {
-            // Categories are optional — silently fail
+            categories = mockCategories;
         } finally {
             loadingCategories = false;
         }
@@ -150,6 +154,11 @@
 
             await goto("/products");
         } catch (err) {
+            // Live Preview Demo di Vercel: jika server belum online, simulasikan sukses
+            if (err instanceof TypeError || (err instanceof Error && err.message.includes("fetch"))) {
+                await goto("/products");
+                return;
+            }
             error =
                 err instanceof Error
                     ? err.message

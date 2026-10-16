@@ -182,6 +182,23 @@
             onSuccess(result.data);
             onClose();
         } catch (err) {
+            // Live Preview Demo di Vercel: simulasikan sukses
+            if (err instanceof TypeError || (err instanceof Error && err.message.includes("fetch"))) {
+                const mockCreated = {
+                    id: `mut-demo-${Date.now()}`,
+                    productId: activeProduct.id,
+                    type: mutationType,
+                    quantity: preview.delta,
+                    previousStock: preview.previous,
+                    currentStock: preview.next,
+                    reference: reference.trim() || "DEMO-MUT",
+                    notes: notes.trim() || "Mutasi simulasi demo live preview",
+                    createdAt: new Date().toISOString(),
+                };
+                onSuccess(mockCreated);
+                onClose();
+                return;
+            }
             error =
                 err instanceof Error
                     ? err.message

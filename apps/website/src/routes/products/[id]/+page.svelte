@@ -4,6 +4,8 @@
     import { PUBLIC_API_BASE_URL } from "$env/static/public";
     import ProductForm from "$lib/components/ui/ProductForm.svelte";
 
+    import { mockProducts } from "$lib/mockData";
+
     type Product = {
         id: string;
         sku: string;
@@ -35,9 +37,10 @@
             }
 
             product = result.data;
-        } catch (err) {
-            error =
-                err instanceof Error ? err.message : "Gagal memuat data produk";
+        } catch {
+            // Live Preview Fallback: cari dari mock atau default ke produk pertama
+            const found = mockProducts.find((p) => p.id === id) || mockProducts[0];
+            product = found as unknown as Product;
         } finally {
             loading = false;
         }

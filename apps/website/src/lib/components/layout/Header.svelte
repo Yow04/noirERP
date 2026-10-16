@@ -4,6 +4,27 @@
     import { HugeiconsIcon } from "@hugeicons/svelte";
     import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
+    import { onMount } from "svelte";
+    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+
+    let isApiConnected = $state(false);
+
+    async function checkApiStatus() {
+        try {
+            const res = await fetch(`${PUBLIC_API_BASE_URL}/products?limit=1`, { method: "HEAD" }).catch(() => null);
+            if (res && res.ok) {
+                isApiConnected = true;
+                return;
+            }
+            const resGet = await fetch(`${PUBLIC_API_BASE_URL}/products`);
+            isApiConnected = resGet.ok;
+        } catch {
+            isApiConnected = false;
+        }
+    }
+
+    onMount(checkApiStatus);
+
     let isExpanded = $derived.by(() => {
         if (typeof window !== "undefined" && window.innerWidth < 768) {
             return sidebarState.mobileOpen;
@@ -108,12 +129,19 @@
         </nav>
     </div>
 
-    <!-- Header Right: Indikator Status Online -->
+    <!-- Header Right: Indikator Status -->
     <div class="header-right">
-        <div class="status-indicator-pill" title="Koneksi Sistem Aktif">
-            <span class="status-dot"></span>
-            <span class="status-text hidden sm:inline">Online</span>
-        </div>
+        {#if isApiConnected}
+            <div class="status-indicator-pill is-online" title="Terhubung ke Database & API backend">
+                <span class="status-dot"></span>
+                <span class="status-text hidden sm:inline">Online</span>
+            </div>
+        {:else}
+            <div class="status-indicator-pill is-demo" title="Live Preview Mode: Data dummy aktif untuk deployment preview">
+                <span class="status-dot-demo"></span>
+                <span class="status-text hidden sm:inline">Live Preview</span>
+            </div>
+        {/if}
     </div>
 </header>
 
@@ -245,14 +273,24 @@
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        padding: 0.25rem 0.6rem;
+        padding: 0.25rem 0.65rem;
         border-radius: 999px;
-        background: oklch(0.2 0.04 145 / 25%);
-        border: 1px solid oklch(0.4 0.08 145 / 30%);
         font-size: 0.71875rem;
         font-weight: 500;
-        color: oklch(0.85 0.1 145);
         user-select: none;
+        transition: all 0.2s ease;
+    }
+
+    .status-indicator-pill.is-online {
+        background: oklch(0.2 0.04 145 / 25%);
+        border: 1px solid oklch(0.4 0.08 145 / 30%);
+        color: oklch(0.85 0.1 145);
+    }
+
+    .status-indicator-pill.is-demo {
+        background: oklch(0.25 0.08 275 / 30%);
+        border: 1px solid oklch(0.5 0.15 275 / 40%);
+        color: oklch(0.88 0.12 275);
     }
 
     .status-dot {
@@ -261,6 +299,14 @@
         border-radius: 999px;
         background: #22c55e;
         box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+    }
+
+    .status-dot-demo {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: #a855f7;
+        box-shadow: 0 0 6px rgba(168, 85, 247, 0.6);
     }
 </style>
 
