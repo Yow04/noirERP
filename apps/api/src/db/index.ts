@@ -7,7 +7,7 @@ import * as schema from './schema/index';
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
 if (!connectionString) {
-    console.warn("⚠️ PERINGATAN: DATABASE_URL atau POSTGRES_URL belum dikonfigurasi di Environment Variables!");
+    console.warn(" PERINGATAN: DATABASE_URL atau POSTGRES_URL belum dikonfigurasi di Environment Variables!");
 }
 
 // Nonaktifkan prepared statements agar kompatibel dengan Serverless Connection Pooler (Vercel/Neon/Supabase)
