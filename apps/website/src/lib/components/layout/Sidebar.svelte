@@ -1,6 +1,8 @@
 <script lang="ts">
     import { page } from "$app/state";
+    import { goto } from "$app/navigation";
     import { sidebarState } from "$lib/state/sidebar.svelte";
+    import { authState } from "$lib/state/auth.svelte";
     import { HugeiconsIcon } from "@hugeicons/svelte";
     import {
         DashboardSpeed02Icon,
@@ -10,6 +12,8 @@
         UserGroupIcon,
         ShoppingCart01Icon,
         Invoice01Icon,
+        Logout01Icon,
+        Login01Icon,
     } from "@hugeicons/core-free-icons";
 
     type NavItem = {
@@ -268,24 +272,67 @@
         </ul>
     </nav>
 
-    <!-- Footer: User Profile -->
+    <!-- Footer: User Profile / Auth -->
     <div class="sidebar-footer">
-        <div class="user-card group" tabindex="0" role="button" aria-label="Profil Admin">
-            <div class="user-avatar">
-                <span class="avatar-text">AD</span>
-                <span class="online-dot"></span>
-            </div>
-
-            {#if !sidebarState.collapsed}
-                <div class="user-details">
-                    <span class="user-name">Admin noirERP</span>
-                    <span class="user-role">Administrator</span>
+        {#if authState.isAuthenticated}
+            <div class="user-card group" role="region" aria-label="Profil Pengguna">
+                <div class="user-avatar">
+                    <span class="avatar-text">{authState.avatarInitials}</span>
+                    <span class="online-dot"></span>
                 </div>
-            {:else}
-                <!-- Floating Tooltip -->
-                <span class="rail-tooltip">Admin noirERP</span>
-            {/if}
-        </div>
+
+                {#if !sidebarState.collapsed}
+                    <div class="user-details">
+                        <span class="user-name" title={authState.userName}>{authState.userName}</span>
+                        <span class="user-role">{authState.userRole}</span>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="logout-btn"
+                        title="Keluar / Ganti Akun"
+                        onclick={() => {
+                            authState.logout();
+                            goto('/login');
+                        }}
+                    >
+                        <HugeiconsIcon icon={Logout01Icon} size={16} />
+                    </button>
+                {:else}
+                    <!-- Floating Tooltip with Logout option -->
+                    <div class="rail-tooltip user-rail-tooltip">
+                        <div class="user-tooltip-name">{authState.userName}</div>
+                        <div class="user-tooltip-role">{authState.userRole}</div>
+                        <button
+                            type="button"
+                            class="tooltip-logout-link"
+                            onclick={() => {
+                                authState.logout();
+                                goto('/login');
+                            }}
+                        >
+                            <HugeiconsIcon icon={Logout01Icon} size={14} />
+                            <span>Keluar</span>
+                        </button>
+                    </div>
+                {/if}
+            </div>
+        {:else}
+            <a
+                href="/login"
+                class="login-sidebar-btn group"
+                aria-label="Masuk ke Akun"
+            >
+                <span class="icon-wrap">
+                    <HugeiconsIcon icon={Login01Icon} size={20} />
+                </span>
+                {#if !sidebarState.collapsed}
+                    <span class="nav-text font-medium">Masuk Sistem</span>
+                {:else}
+                    <span class="rail-tooltip">Masuk Sistem</span>
+                {/if}
+            </a>
+        {/if}
     </div>
 
     <!-- Edge Drag/Resize Handle -->
@@ -767,5 +814,82 @@
         .sidebar-resizer {
             display: none;
         }
+    }
+
+    .logout-btn {
+        margin-left: auto;
+        background: transparent;
+        border: none;
+        color: oklch(0.5 0 0);
+        cursor: pointer;
+        padding: 0.35rem;
+        border-radius: 0.375rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+    }
+
+    .logout-btn:hover {
+        background: oklch(1 0 0 / 10%);
+        color: oklch(0.95 0 0);
+    }
+
+    .login-sidebar-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.5rem 0.625rem;
+        border-radius: 0.5rem;
+        background: oklch(1 0 0 / 5%);
+        border: 1px solid oklch(1 0 0 / 10%);
+        color: oklch(0.95 0 0);
+        text-decoration: none;
+        font-size: 0.8125rem;
+        transition: all 0.15s ease;
+    }
+
+    .login-sidebar-btn:hover {
+        background: oklch(1 0 0 / 10%);
+        border-color: oklch(1 0 0 / 20%);
+    }
+
+    .user-rail-tooltip {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        min-width: 130px;
+    }
+
+    .user-tooltip-name {
+        font-weight: 600;
+        color: oklch(0.98 0 0);
+    }
+
+    .user-tooltip-role {
+        font-size: 0.6875rem;
+        color: oklch(0.6 0 0);
+    }
+
+    .tooltip-logout-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-top: 0.25rem;
+        padding: 0.25rem 0.4rem;
+        background: oklch(1 0 0 / 8%);
+        border: 1px solid oklch(1 0 0 / 12%);
+        border-radius: 0.25rem;
+        color: oklch(0.9 0 0);
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .tooltip-logout-link:hover {
+        background: oklch(1 0 0 / 15%);
+        color: #fff;
     }
 </style>
