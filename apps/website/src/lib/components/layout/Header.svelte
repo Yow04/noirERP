@@ -1,6 +1,7 @@
 <script lang="ts">
     import { page } from "$app/state";
     import { sidebarState } from "$lib/state/sidebar.svelte";
+    import { authState } from "$lib/state/auth.svelte";
     import { HugeiconsIcon } from "@hugeicons/svelte";
     import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
@@ -129,7 +130,7 @@
         </nav>
     </div>
 
-    <!-- Header Right: Indikator Status -->
+    <!-- Header Right: Indikator Status & Auth -->
     <div class="header-right">
         {#if isApiConnected}
             <div class="status-indicator-pill is-online" title="Terhubung ke Database & API backend">
@@ -141,6 +142,17 @@
                 <span class="status-dot-demo"></span>
                 <span class="status-text hidden sm:inline">Live Preview</span>
             </div>
+        {/if}
+
+        {#if authState.isAuthenticated}
+            <div class="user-header-chip hidden md:inline-flex" title="{authState.userName} ({authState.userRole})">
+                <span class="user-chip-avatar">{authState.avatarInitials}</span>
+                <span class="user-chip-name">{authState.userName}</span>
+            </div>
+        {:else}
+            <a href="/login" class="login-header-chip">
+                <span>Masuk</span>
+            </a>
         {/if}
     </div>
 </header>
@@ -307,6 +319,58 @@
         border-radius: 999px;
         background: #a855f7;
         box-shadow: 0 0 6px rgba(168, 85, 247, 0.6);
+    }
+
+    .user-header-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem 0.5rem 0.25rem 0.35rem;
+        border-radius: 999px;
+        background: oklch(1 0 0 / 4%);
+        border: 1px solid oklch(1 0 0 / 8%);
+        margin-left: 0.5rem;
+    }
+
+    .user-chip-avatar {
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 999px;
+        background: oklch(0.3 0.1 270);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.5625rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .user-chip-name {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: oklch(0.85 0 0);
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .login-header-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.65rem;
+        border-radius: 999px;
+        background: oklch(0.95 0 0);
+        color: oklch(0.12 0 0);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+        margin-left: 0.5rem;
+        transition: opacity 0.15s ease;
+    }
+
+    .login-header-chip:hover {
+        opacity: 0.9;
     }
 </style>
 
