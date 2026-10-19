@@ -3,13 +3,13 @@
     import { PUBLIC_API_BASE_URL } from "$env/static/public";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
+    import { Alert } from "$lib/components/ui/alert";
     import { HugeiconsIcon } from "@hugeicons/svelte";
     import {
         PackageReceiveIcon,
         Search01Icon,
         Settings02Icon,
         RefreshIcon,
-        AlertCircleIcon,
         PackageMovingIcon,
     } from "@hugeicons/core-free-icons";
     import type {
@@ -206,13 +206,8 @@
         </div>
     </div>
 
-    <!-- Error Banner -->
-    {#if error}
-        <div role="alert" class="flex items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3.5 text-xs text-rose-300">
-            <HugeiconsIcon icon={AlertCircleIcon} size={16} strokeWidth={2} />
-            <span>{error}</span>
-        </div>
-    {/if}
+    <!-- Error Alert (Reusable & No {#if} block needed) -->
+    <Alert variant="destructive" bind:message={error} dismissible />
 
     <!-- KPI Stats Cards -->
     <InventoryStats {summary} {loading} />

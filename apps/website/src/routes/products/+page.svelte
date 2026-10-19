@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { PUBLIC_API_BASE_URL } from "$env/static/public";
     import { Button } from "$lib/components/ui/button";
+    import { Alert } from "$lib/components/ui/alert";
     import { StockStatusBadge } from "$lib/components/inventory";
     import { formatCurrency } from "$lib/utils";
 
@@ -115,14 +116,8 @@
         </div>
     </div>
 
-    {#if error}
-        <div
-            role="alert"
-            class="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700"
-        >
-            {error}
-        </div>
-    {/if}
+    <!-- Error Alert (Reusable & No {#if} block needed) -->
+    <Alert variant="destructive" bind:message={error} dismissible />
 
     <div class="overflow-x-auto rounded-lg border">
         {#if loading}

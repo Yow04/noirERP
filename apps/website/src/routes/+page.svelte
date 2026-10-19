@@ -1,8 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { PUBLIC_API_BASE_URL } from "$env/static/public";
-    import { HugeiconsIcon } from "@hugeicons/svelte";
-    import { AlertCircleIcon } from "@hugeicons/core-free-icons";
+    import { Alert } from "$lib/components/ui/alert";
     import type { DashboardData } from "$lib/types/dashboard";
     import {
         DashboardHero,
@@ -58,17 +57,8 @@
     <!-- Hero Header -->
     <DashboardHero />
 
-    <!-- Error Banner -->
-    {#if error}
-        <div role="alert" class="error-banner">
-            <HugeiconsIcon
-                icon={AlertCircleIcon}
-                size={18}
-                strokeWidth={2}
-            />
-            <span>{error}</span>
-        </div>
-    {/if}
+    <!-- Error Alert (Reusable & No {#if} block needed) -->
+    <Alert variant="destructive" bind:message={error} dismissible />
 
     <!-- Content State -->
     {#if loading}
@@ -125,17 +115,6 @@
         margin: 0 auto;
     }
 
-    .error-banner {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        border-radius: 0.75rem;
-        background: oklch(0.25 0.08 25);
-        border: 1px solid oklch(0.4 0.12 25);
-        color: oklch(0.85 0.1 25);
-        font-size: 0.875rem;
-    }
 
     .operational-section {
         width: 100%;
