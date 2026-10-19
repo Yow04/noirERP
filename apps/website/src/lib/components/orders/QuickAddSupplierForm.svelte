@@ -2,6 +2,7 @@
     import { PUBLIC_API_BASE_URL } from "$env/static/public";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
+    import { Alert } from "$lib/components/ui/alert";
     import type { Supplier } from "$lib/types/purchase";
 
     type Props = {
@@ -56,9 +57,7 @@
         Tambah Supplier Cepat
     </div>
 
-    {#if errorMessage}
-        <p class="text-xs text-rose-400">{errorMessage}</p>
-    {/if}
+    <Alert variant="destructive" bind:message={errorMessage} dismissible />
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>

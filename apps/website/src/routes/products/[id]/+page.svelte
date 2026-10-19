@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import { PUBLIC_API_BASE_URL } from "$env/static/public";
     import ProductForm from "$lib/components/ui/ProductForm.svelte";
+    import { Alert } from "$lib/components/ui/alert";
 
     import { mockProducts } from "$lib/mockData";
 
@@ -65,12 +66,7 @@
     {#if loading}
         <p class="text-sm text-muted-foreground">Memuat data produk...</p>
     {:else if error}
-        <div
-            role="alert"
-            class="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700"
-        >
-            {error}
-        </div>
+        <Alert variant="destructive" bind:message={error} dismissible />
     {:else if product}
         <div class="mx-auto max-w-2xl">
             <ProductForm {product} />

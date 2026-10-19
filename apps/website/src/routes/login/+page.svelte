@@ -7,6 +7,7 @@
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
+    import { Alert } from "$lib/components/ui/alert";
     import { HugeiconsIcon } from "@hugeicons/svelte";
     import {
         Mail01Icon,
@@ -14,7 +15,6 @@
         ViewIcon,
         ViewOffSlashIcon,
         ArrowRight01Icon,
-        AlertCircleIcon,
         CheckmarkCircle02Icon,
         ShieldCheckIcon,
     } from "@hugeicons/core-free-icons";
@@ -89,13 +89,13 @@
             <!-- 1-Click Demo Preset Component -->
             <DemoAccountSelector selectedId={selectedDemoId} onSelect={handleDemoSelect} />
 
-            <!-- Error Banner -->
-            {#if errorMessage}
-                <div role="alert" class="flex items-start gap-2.5 p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-red-300 text-xs mb-4">
-                    <HugeiconsIcon icon={AlertCircleIcon} size={16} class="shrink-0 text-red-400 mt-0.5" />
-                    <p class="leading-relaxed">{errorMessage}</p>
-                </div>
-            {/if}
+            <!-- Reusable Alert: eliminates conditional if in page template -->
+            <Alert
+                variant="destructive"
+                bind:message={errorMessage}
+                dismissible
+                class="mb-4"
+            />
 
             <!-- Login Form -->
             <form onsubmit={handleLogin} class="flex flex-col gap-4" novalidate>

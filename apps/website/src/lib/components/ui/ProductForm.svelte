@@ -4,6 +4,7 @@
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
+    import { Alert } from "$lib/components/ui/alert";
 
     type Product = {
         id: string;
@@ -173,15 +174,8 @@
 </script>
 
 <form onsubmit={handleSubmit} class="space-y-6">
-    <!-- Error Banner -->
-    {#if error}
-        <div
-            role="alert"
-            class="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700"
-        >
-            {error}
-        </div>
-    {/if}
+    <!-- Error Alert (Reusable & No {#if} block needed) -->
+    <Alert variant="destructive" bind:message={error} dismissible />
 
     <div class="grid gap-6 sm:grid-cols-2">
         <!-- SKU -->
