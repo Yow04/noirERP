@@ -11,6 +11,7 @@ import {
     salesOrderItems,
 } from "./schema/index";
 import { sql } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 export async function seed() {
     console.log("🌱 Memulai proses seeding data dummy noirERP...");
@@ -29,7 +30,7 @@ export async function seed() {
 
     // 2. Seeding Users
     console.log("👤 Seeding Pengguna (Users)...");
-    const dummyPasswordHash = "$2b$10$v0sKj3E45m7M8VjF4N6p4.Y7j7j2k9e9f8g7h6j5k4l3m2n1o0p9q";
+    const defaultPasswordHash = bcrypt.hashSync("password123", 10);
 
     const [adminUser, staffUser, salesUser, managerUser] = await db
         .insert(users)
@@ -37,25 +38,25 @@ export async function seed() {
             {
                 name: "Admin noirERP",
                 email: "admin@noirerp.dev",
-                passwordHash: dummyPasswordHash,
+                passwordHash: defaultPasswordHash,
                 role: "admin",
             },
             {
                 name: "Staff Gudang & Logistik",
                 email: "inventory@noirerp.dev",
-                passwordHash: dummyPasswordHash,
+                passwordHash: defaultPasswordHash,
                 role: "staff",
             },
             {
                 name: "Sales Representative",
                 email: "sales@noirerp.dev",
-                passwordHash: dummyPasswordHash,
+                passwordHash: defaultPasswordHash,
                 role: "staff",
             },
             {
                 name: "Operational Manager",
                 email: "manager@noirerp.dev",
-                passwordHash: dummyPasswordHash,
+                passwordHash: defaultPasswordHash,
                 role: "admin",
             },
         ])

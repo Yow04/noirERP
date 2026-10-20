@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "$lib/components/ui/card";
     import { HugeiconsIcon } from "@hugeicons/svelte";
@@ -51,10 +51,9 @@
 
     async function loadUsers() {
         try {
-            const res = await fetch(`${PUBLIC_API_BASE_URL}/users`);
-            const json = await res.json();
-            if (res.ok && json.success && json.data?.length > 0) {
-                usersList = json.data.map((u: any) => ({
+            const res = await apiFetch<any[]>("/users");
+            if (res.success && res.data && res.data.length > 0) {
+                usersList = res.data.map((u) => ({
                     id: u.id,
                     name: u.name,
                     email: u.email,
