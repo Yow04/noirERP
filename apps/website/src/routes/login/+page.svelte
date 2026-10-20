@@ -196,7 +196,11 @@
                 <button
                     type="button"
                     class="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors py-1 px-2 rounded-md hover:bg-white/[0.04]"
-                    onclick={() => goto("/")}
+                    onclick={() => {
+                        authState.loginAsGuest();
+                        const targetUrl = page.url.searchParams.get("from") || "/";
+                        goto(targetUrl);
+                    }}
                 >
                     <span>Lanjutkan sebagai Tamu (Mode Preview)</span>
                     <HugeiconsIcon icon={ArrowRight01Icon} size={13} />

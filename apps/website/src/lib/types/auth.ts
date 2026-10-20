@@ -2,7 +2,7 @@ export type AuthUser = {
     id: string;
     name: string;
     email: string;
-    role: 'Admin' | 'Staff' | string;
+    role: 'Admin' | 'Staff' | 'Guest' | string;
     avatarInitials: string;
     department?: string;
     lastLogin?: string;
@@ -22,4 +22,16 @@ export type DemoAccount = {
     role: 'Admin' | 'Staff';
     name: string;
     description: string;
+};
+
+export type AuthResponse = {
+    success: boolean;
+    message?: string;
+    isDemo?: boolean;
+    token?: string;
+    user?: AuthUser;
+    data?: {
+        token: string;
+        user: AuthUser;
+    };
 };

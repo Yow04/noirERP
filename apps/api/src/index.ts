@@ -10,6 +10,7 @@ import purchaseRoutes from "./routes/purchase";
 import salesRoutes from "./routes/sales";
 import categoryRoutes from "./routes/category";
 import userRoutes from "./routes/user";
+import authRoutes from "./routes/auth";
 import { seed } from "./db/seed";
 
 const app = new Hono()
@@ -68,6 +69,7 @@ app.get("/api/v1", (c) => {
   });
 });
 
+app.route('/api/v1/auth', authRoutes);
 app.route('/api/v1/categories', categoryRoutes);
 app.route('/api/v1/products', productsRoutes);
 app.route('/api/v1/dashboard', dashboardRoutes);
