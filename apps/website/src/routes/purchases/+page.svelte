@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { fetchWithFallback } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import { HugeiconsIcon } from "@hugeicons/svelte";
@@ -44,26 +44,13 @@
         error = "";
         try {
             const [sumRes, ordRes] = await Promise.all([
-                fetch(`${PUBLIC_API_BASE_URL}/purchases/summary`),
-                fetch(`${PUBLIC_API_BASE_URL}/purchases?limit=100`),
+                fetchWithFallback<PurchaseSummary>("/purchases/summary", mockPurchaseSummary),
+                fetchWithFallback<PurchaseOrder[]>("/purchases", mockPurchaseOrders, { params: { limit: 100 } }),
             ]);
 
-            const sumJson = await sumRes.json();
-            const ordJson = await ordRes.json();
-
-            if (sumRes.ok && sumJson.success) {
-                summary = sumJson.data;
-            } else {
-                summary = mockPurchaseSummary;
-            }
-
-            if (ordRes.ok && ordJson.success) {
-                orders = ordJson.data ?? [];
-            } else {
-                orders = mockPurchaseOrders;
-            }
+            summary = sumRes.data;
+            orders = ordRes.data;
         } catch {
-            // Live Preview Fallback
             summary = mockPurchaseSummary;
             orders = mockPurchaseOrders;
         } finally {

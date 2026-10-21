@@ -6,19 +6,14 @@
     import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
     import { onMount } from "svelte";
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch } from "$lib/api/client";
 
     let isApiConnected = $state(false);
 
     async function checkApiStatus() {
         try {
-            const res = await fetch(`${PUBLIC_API_BASE_URL}/products?limit=1`, { method: "HEAD" }).catch(() => null);
-            if (res && res.ok) {
-                isApiConnected = true;
-                return;
-            }
-            const resGet = await fetch(`${PUBLIC_API_BASE_URL}/products`);
-            isApiConnected = resGet.ok;
+            const res = await apiFetch("/health", { skipAuth: true });
+            isApiConnected = res.success;
         } catch {
             isApiConnected = false;
         }

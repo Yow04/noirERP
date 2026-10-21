@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch, fetchWithFallback } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { Label } from "$lib/components/ui/label";
     import { HugeiconsIcon } from "@hugeicons/svelte";
@@ -55,46 +55,26 @@
     async function loadInitialData() {
         loadingData = true;
         try {
-            const [supRes, prodRes] = await Promise.all([
-                fetch(`${PUBLIC_API_BASE_URL}/purchases/suppliers`),
-                fetch(`${PUBLIC_API_BASE_URL}/inventory/items`),
-            ]);
-
-            const supJson = await supRes.json();
-            const prodJson = await prodRes.json();
-
-            if (supRes.ok && supJson.success && supJson.data?.length > 0) {
-                suppliers = supJson.data;
-            } else {
-                suppliers = mockSuppliers;
-            }
-
-            if (prodRes.ok && prodJson.success && prodJson.data?.length > 0) {
-                products = prodJson.data.map((p: any) => ({
-                    id: p.id,
-                    name: p.name,
-                    sku: p.sku,
-                    purchasePrice: Number(p.purchasePrice ?? 0),
-                    stock: p.stock ?? 0,
-                }));
-            } else {
-                products = mockProducts.map((p) => ({
-                    id: p.id,
-                    name: p.name,
-                    sku: p.sku,
-                    purchasePrice: Number(p.purchasePrice),
-                    stock: p.stock,
-                }));
-            }
-        } catch {
-            // Live Preview Fallback
-            suppliers = mockSuppliers;
-            products = mockProducts.map((p) => ({
+            const fallbackProd = mockProducts.map((p) => ({
                 id: p.id,
                 name: p.name,
                 sku: p.sku,
                 purchasePrice: Number(p.purchasePrice),
                 stock: p.stock,
+            }));
+
+            const [supRes, prodRes] = await Promise.all([
+                fetchWithFallback<any[]>("/purchases/suppliers", mockSuppliers),
+                fetchWithFallback<any[]>("/inventory/items", fallbackProd),
+            ]);
+
+            suppliers = supRes.data ?? [];
+            products = (prodRes.data ?? []).map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                sku: p.sku,
+                purchasePrice: Number(p.purchasePrice ?? 0),
+                stock: p.stock ?? 0,
             }));
         } finally {
             loadingData = false;
@@ -173,18 +153,13 @@
                 })),
             };
 
-            const res = await fetch(`${PUBLIC_API_BASE_URL}/purchases`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
+            const res = await apiFetch.post("/purchases", payload);
 
-            const json = await res.json();
-            if (!res.ok || !json.success) {
-                throw new Error(json.message || "Gagal membuat Purchase Order");
+            if (!res.success) {
+                throw new Error(res.message || "Gagal membuat Purchase Order");
             }
 
-            onSuccess(json.data);
+            onSuccess(res.data);
             onClose();
         } catch (err) {
             // Live Preview Demo di Vercel: simulasikan sukses

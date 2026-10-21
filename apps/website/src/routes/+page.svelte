@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { fetchWithFallback } from "$lib/api/client";
     import { Alert } from "$lib/components/ui/alert";
     import type { DashboardData } from "$lib/types/dashboard";
     import {
@@ -24,19 +24,12 @@
         loading = true;
         error = "";
         try {
-            const dashRes = await fetch(`${PUBLIC_API_BASE_URL}/dashboard`);
-            const result = await dashRes.json();
-
-            if (!dashRes.ok || !result.success) {
-                throw new Error(result.message || "Failed to load dashboard");
+            const res = await fetchWithFallback<DashboardData>("/dashboard", mockDashboardData);
+            data = res.data;
+            isDemo = res.isDemo;
+            if (res.error && !res.isDemo) {
+                error = res.error;
             }
-
-            data = result.data;
-            isDemo = false;
-        } catch {
-            // Live Preview Fallback: Gunakan mock dashboard agar deployment Vercel tampil sempurna
-            data = mockDashboardData;
-            isDemo = true;
         } finally {
             loading = false;
         }

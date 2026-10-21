@@ -2,8 +2,12 @@ import { Hono } from "hono";
 import { sql, count, sum, desc, gte, eq, and, or } from "drizzle-orm";
 import { db } from "../db/index";
 import { products, categories, users, salesOrders, purchaseOrders } from "../db/schema/index";
+import { authMiddleware } from "../middleware/auth";
 
 const dashboardRoutes = new Hono();
+
+// Seluruh route analitik dan dashboard memerlukan autentikasi
+dashboardRoutes.use("*", authMiddleware);
 
 async function getDashboardAnalytics(days: number = 7) {
     const validDays = [7, 14, 30].includes(days) ? days : 7;

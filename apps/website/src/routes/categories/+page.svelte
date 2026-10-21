@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { fetchWithFallback } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "$lib/components/ui/card";
     import { HugeiconsIcon } from "@hugeicons/svelte";
@@ -49,15 +49,8 @@
         loading = true;
         error = "";
         try {
-            const response = await fetch(`${PUBLIC_API_BASE_URL}/categories`);
-            const result = await response.json();
-            if (response.ok && result.success && result.data?.length > 0) {
-                categories = result.data;
-            } else {
-                categories = fallbackCategories;
-            }
-        } catch (err) {
-            categories = fallbackCategories;
+            const res = await fetchWithFallback<Category[]>("/categories", fallbackCategories);
+            categories = res.data;
         } finally {
             loading = false;
         }

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
@@ -39,19 +39,15 @@
         error = "";
 
         try {
-            const response = await fetch(`${PUBLIC_API_BASE_URL}/inventory/items/${item.id}/min-stock`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ minStock: Number(minStockValue) }),
+            const response = await apiFetch.patch(`/inventory/items/${item.id}/min-stock`, {
+                minStock: Number(minStockValue),
             });
 
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                throw new Error(result.message || "Gagal memperbarui aturan stok minimum.");
+            if (!response.success) {
+                throw new Error(response.message || "Gagal memperbarui aturan stok minimum.");
             }
 
-            onSuccess(result.data);
+            onSuccess(response.data);
             onClose();
         } catch (err) {
             // Live Preview Demo di Vercel: simulasikan sukses

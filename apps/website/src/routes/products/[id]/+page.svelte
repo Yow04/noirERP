@@ -1,7 +1,7 @@
 <script lang="ts">
     import { page } from "$app/state";
     import { onMount } from "svelte";
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { fetchWithFallback } from "$lib/api/client";
     import ProductForm from "$lib/components/ui/ProductForm.svelte";
     import { Alert } from "$lib/components/ui/alert";
 
@@ -27,24 +27,13 @@
         loading = true;
         error = "";
 
-        try {
-            const response = await fetch(
-                `${PUBLIC_API_BASE_URL}/products/${id}`,
-            );
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                throw new Error(result.message ?? "Produk tidak ditemukan");
-            }
-
-            product = result.data;
-        } catch {
-            // Live Preview Fallback: cari dari mock atau default ke produk pertama
-            const found = mockProducts.find((p) => p.id === id) || mockProducts[0];
-            product = found as unknown as Product;
-        } finally {
-            loading = false;
+        const fallback = (mockProducts.find((p) => p.id === id) || mockProducts[0]) as unknown as Product;
+        const res = await fetchWithFallback<Product>(`/products/${id}`, fallback);
+        product = res.data;
+        if (res.error && !res.isDemo) {
+            error = res.error;
         }
+        loading = false;
     }
 
     onMount(loadProduct);

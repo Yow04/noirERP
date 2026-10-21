@@ -5,8 +5,12 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "../db/index";
 import { categories, products, stockMutations } from "../db/schema/index";
 import { createProductSchema, updateProductSchema } from "../validator/validator.product";
+import { authMiddleware, requireRole } from "../middleware/auth";
 
 const productsRoutes = new Hono();
+
+// Seluruh route produk memerlukan autentikasi
+productsRoutes.use("*", authMiddleware);
 
 //mengambil product untuk seluruhnya
 productsRoutes.get('/', async (c) => {
@@ -179,9 +183,16 @@ productsRoutes.patch(
     },
 );
 
-//melakukan delete pada produk tertentu by id
-productsRoutes.delete("/:id", async (c) => {
+//melakukan delete pada produk tertentu by id (Admin saja)
+productsRoutes.delete("/:id", requireRole(["Admin"]), async (c) => {
     const id = c.req.param("id");
+
+    if (!id) {
+        return c.json({
+            success: false,
+            message: "ID produk tidak valid",
+        }, 400);
+    }
 
     try {
         const result = await db

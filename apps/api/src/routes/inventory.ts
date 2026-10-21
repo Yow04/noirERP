@@ -7,8 +7,12 @@ import {
     inventoryFilterSchema,
     mutationFilterSchema,
 } from "../validator/validator.inventory";
+import { authMiddleware } from "../middleware/auth";
 
 const inventoryRoutes = new Hono();
+
+// Seluruh route inventori memerlukan autentikasi
+inventoryRoutes.use("*", authMiddleware);
 
 // GET /api/v1/inventory/summary
 // Mengambil ringkasan data inventaris (Total SKU, Total unit, Stok Rendah, Stok Habis, Total Mutasi)

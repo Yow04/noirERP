@@ -57,7 +57,10 @@ export async function authMiddleware(c: Context, next: Next) {
 export function requireRole(allowedRoles: Array<"Admin" | "Staff" | string>) {
     return async (c: Context, next: Next) => {
         const user = c.get("user");
-        if (!user || !allowedRoles.includes(user.role)) {
+        const userRole = user?.role?.toLowerCase();
+        const isAllowed = user && allowedRoles.some((r) => r.toLowerCase() === userRole);
+
+        if (!isAllowed) {
             return c.json(
                 {
                     success: false,

@@ -5,8 +5,12 @@ import {
     createPurchaseOrderSchema,
     purchaseFilterSchema,
 } from "../validator/validator.purchase";
+import { authMiddleware } from "../middleware/auth";
 
 const purchaseRoutes = new Hono();
+
+// Seluruh route purchasing memerlukan autentikasi
+purchaseRoutes.use("*", authMiddleware);
 
 // GET /api/v1/purchases/summary
 // Ringkasan data purchasing (Total PO, PO Draft, Total nilai pembelian)

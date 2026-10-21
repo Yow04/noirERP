@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { fetchWithFallback } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import { Alert } from "$lib/components/ui/alert";
@@ -59,26 +59,13 @@
         error = "";
         try {
             const [sumRes, itemsRes] = await Promise.all([
-                fetch(`${PUBLIC_API_BASE_URL}/inventory/summary`),
-                fetch(`${PUBLIC_API_BASE_URL}/inventory/items`),
+                fetchWithFallback<InventorySummary>("/inventory/summary", mockInventorySummary),
+                fetchWithFallback<InventoryItem[]>("/inventory/items", mockInventoryItems),
             ]);
 
-            const sumJson = await sumRes.json();
-            const itemsJson = await itemsRes.json();
-
-            if (sumRes.ok && sumJson.success) {
-                summary = sumJson.data;
-            } else {
-                summary = mockInventorySummary;
-            }
-
-            if (itemsRes.ok && itemsJson.success) {
-                items = itemsJson.data ?? [];
-            } else {
-                items = mockInventoryItems;
-            }
+            summary = sumRes.data;
+            items = itemsRes.data;
         } catch {
-            // Live Preview Fallback
             summary = mockInventorySummary;
             items = mockInventoryItems;
         } finally {
@@ -90,15 +77,8 @@
     async function loadMutations() {
         loadingMutations = true;
         try {
-            const response = await fetch(`${PUBLIC_API_BASE_URL}/inventory/mutations`);
-            const result = await response.json();
-            if (response.ok && result.success) {
-                mutations = result.data ?? [];
-            } else {
-                mutations = mockStockMutations;
-            }
-        } catch {
-            mutations = mockStockMutations;
+            const res = await fetchWithFallback<StockMutation[]>("/inventory/mutations", mockStockMutations);
+            mutations = res.data;
         } finally {
             loadingMutations = false;
         }

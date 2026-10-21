@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
@@ -162,24 +162,15 @@
         };
 
         try {
-            const response = await fetch(
-                `${PUBLIC_API_BASE_URL}/inventory/mutations`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                },
-            );
+            const response = await apiFetch.post("/inventory/mutations", payload);
 
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
+            if (!response.success) {
                 throw new Error(
-                    result.message || "Gagal mencatat mutasi stok.",
+                    response.message || "Gagal mencatat mutasi stok.",
                 );
             }
 
-            onSuccess(result.data);
+            onSuccess(response.data);
             onClose();
         } catch (err) {
             // Live Preview Demo di Vercel: simulasikan sukses
