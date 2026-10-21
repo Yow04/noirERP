@@ -11,7 +11,7 @@
     import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "$lib/components/ui/card";
     import type { DailyTrend } from "$lib/types/dashboard";
     import { formatCurrency } from "$lib/utils";
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch } from "$lib/api/client";
 
     Chart.register(...registerables);
 
@@ -37,10 +37,9 @@
         selectedDays = days;
         loading = true;
         try {
-            const res = await fetch(`${PUBLIC_API_BASE_URL}/dashboard/analytics?days=${days}`);
-            const json = await res.json();
-            if (json.success && json.data) {
-                trendData = json.data.trend;
+            const res = await apiFetch(`/dashboard/analytics`, { params: { days } });
+            if (res.success && res.data) {
+                trendData = res.data.trend;
                 updateChart();
             }
         } catch (err) {

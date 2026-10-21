@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch, fetchWithFallback } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { Alert } from "$lib/components/ui/alert";
     import { StockStatusBadge } from "$lib/components/inventory";
@@ -31,19 +31,12 @@
         loading = true;
         error = "";
         try {
-            const response = await fetch(`${PUBLIC_API_BASE_URL}/products`);
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                throw new Error(result.message || "Failed to load products");
+            const res = await fetchWithFallback<Product[]>("/products", mockProducts as unknown as Product[]);
+            products = res.data;
+            isDemo = res.isDemo;
+            if (res.error && !res.isDemo) {
+                error = res.error;
             }
-
-            products = result.data;
-            isDemo = false;
-        } catch {
-            // Live Preview Fallback
-            products = mockProducts as unknown as Product[];
-            isDemo = true;
         } finally {
             loading = false;
         }
@@ -65,18 +58,11 @@
         }
 
         try {
-            const response = await fetch(
-                `${PUBLIC_API_BASE_URL}/products/${id}`,
-                {
-                    method: "DELETE",
-                },
-            );
+            const response = await apiFetch.delete(`/products/${id}`);
 
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
+            if (!response.success) {
                 throw new Error(
-                    result.message ?? "Failed to delete this product",
+                    response.message ?? "Failed to delete this product",
                 );
             }
 

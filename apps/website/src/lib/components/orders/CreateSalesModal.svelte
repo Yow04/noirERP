@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch, fetchWithFallback } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
@@ -55,33 +55,21 @@
     async function loadProducts() {
         loadingData = true;
         try {
-            const res = await fetch(`${PUBLIC_API_BASE_URL}/inventory/items`);
-            const json = await res.json();
-            if (res.ok && json.success && json.data?.length > 0) {
-                products = json.data.map((p: any) => ({
-                    id: p.id,
-                    name: p.name,
-                    sku: p.sku,
-                    sellingPrice: Number(p.sellingPrice ?? 0),
-                    stock: p.stock ?? 0,
-                }));
-            } else {
-                products = mockProducts.map((p) => ({
-                    id: p.id,
-                    name: p.name,
-                    sku: p.sku,
-                    sellingPrice: Number(p.sellingPrice),
-                    stock: p.stock,
-                }));
-            }
-        } catch {
-            // Live Preview Fallback
-            products = mockProducts.map((p) => ({
+            const fallback = mockProducts.map((p) => ({
                 id: p.id,
                 name: p.name,
                 sku: p.sku,
                 sellingPrice: Number(p.sellingPrice),
                 stock: p.stock,
+            }));
+
+            const res = await fetchWithFallback<any[]>("/inventory/items", fallback);
+            products = (res.data ?? []).map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                sku: p.sku,
+                sellingPrice: Number(p.sellingPrice ?? 0),
+                stock: p.stock ?? 0,
             }));
         } finally {
             loadingData = false;
@@ -166,18 +154,13 @@
                 })),
             };
 
-            const res = await fetch(`${PUBLIC_API_BASE_URL}/sales`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
+            const res = await apiFetch.post("/sales", payload);
 
-            const json = await res.json();
-            if (!res.ok || !json.success) {
-                throw new Error(json.message || "Gagal membuat Sales Order");
+            if (!res.success) {
+                throw new Error(res.message || "Gagal membuat Sales Order");
             }
 
-            onSuccess(json.data);
+            onSuccess(res.data);
             onClose();
         } catch (err) {
             // Live Preview Demo di Vercel: simulasikan sukses

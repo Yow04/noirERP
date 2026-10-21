@@ -20,7 +20,7 @@ export interface ApiResponse<T = any> {
  * - Query parameters serialization
  * - Injeksi otomatis header 'Authorization: Bearer <token>'
  * - Default 'Content-Type: application/json' (kecuali FormData)
- * - Penanganan sesi kedaluwarsa 401 Unauthorized (auto-logout & redirect ke login)
+ * - Penanganan sesi kedaluwarsa 401 Unauthorized (auto-logout & redirect ke login kecuali di mode demo)
  * - Safe JSON parsing tanpa crash
  */
 export async function apiFetch<T = any>(
@@ -66,16 +66,18 @@ export async function apiFetch<T = any>(
             headers
         });
 
-        // Tangani 401 Unauthorized secara global
+        // Tangani 401 Unauthorized secara global (hanya jika bukan mode demo offline)
         if (response.status === 401 && !skipAuth) {
-            authState.logout();
-            if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-                const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
-                window.location.href = `/login?from=${currentPath}`;
+            if (!authState.isDemo) {
+                authState.logout();
+                if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+                    const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
+                    window.location.href = `/login?from=${currentPath}`;
+                }
             }
             return {
                 success: false,
-                message: 'Sesi Anda telah kedaluwarsa. Silakan masuk kembali.'
+                message: 'Sesi Anda telah kedaluwarsa atau tidak memiliki akses. Silakan masuk kembali.'
             };
         }
 
@@ -98,3 +100,45 @@ export async function apiFetch<T = any>(
         };
     }
 }
+
+/**
+ * Helper terpadu untuk memanggil API dengan Live Preview Fallback.
+ * Jika backend sedang offline atau dalam mode demo preview di Vercel,
+ * otomatis beralih ke fallbackData secara aman tanpa crash atau alert error.
+ */
+export async function fetchWithFallback<T>(
+    endpoint: string,
+    fallbackData: T,
+    options?: ApiFetchOptions
+): Promise<{ data: T; isDemo: boolean; error?: string }> {
+    try {
+        const res = await apiFetch<T>(endpoint, options);
+        if (res.success && res.data !== undefined && res.data !== null) {
+            return { data: res.data, isDemo: false };
+        }
+        return { data: fallbackData, isDemo: true, error: res.message };
+    } catch {
+        return { data: fallbackData, isDemo: true };
+    }
+}
+
+// Shorthand methods
+apiFetch.get = <T = any>(endpoint: string, options?: ApiFetchOptions) =>
+    apiFetch<T>(endpoint, { ...options, method: 'GET' });
+
+apiFetch.post = <T = any>(endpoint: string, body?: any, options?: ApiFetchOptions) =>
+    apiFetch<T>(endpoint, {
+        ...options,
+        method: 'POST',
+        body: body instanceof FormData ? body : JSON.stringify(body)
+    });
+
+apiFetch.patch = <T = any>(endpoint: string, body?: any, options?: ApiFetchOptions) =>
+    apiFetch<T>(endpoint, {
+        ...options,
+        method: 'PATCH',
+        body: body instanceof FormData ? body : JSON.stringify(body)
+    });
+
+apiFetch.delete = <T = any>(endpoint: string, options?: ApiFetchOptions) =>
+    apiFetch<T>(endpoint, { ...options, method: 'DELETE' });

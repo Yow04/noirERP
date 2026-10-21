@@ -2,8 +2,12 @@ import { Hono } from "hono";
 import { desc, eq, sql } from "drizzle-orm";
 import { db } from "../db/index";
 import { categories, products } from "../db/schema/index";
+import { authMiddleware } from "../middleware/auth";
 
 const categoryRoutes = new Hono();
+
+// Seluruh route kategori memerlukan autentikasi
+categoryRoutes.use("*", authMiddleware);
 
 // GET /api/v1/categories - Mengambil seluruh kategori
 categoryRoutes.get("/", async (c) => {

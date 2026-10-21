@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import { Alert } from "$lib/components/ui/alert";
@@ -28,22 +28,17 @@
         errorMessage = "";
 
         try {
-            const res = await fetch(`${PUBLIC_API_BASE_URL}/purchases/suppliers`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: name.trim(),
-                    phone: phone.trim() || undefined,
-                    contactPerson: contactPerson.trim() || undefined,
-                }),
+            const res = await apiFetch.post("/purchases/suppliers", {
+                name: name.trim(),
+                phone: phone.trim() || undefined,
+                contactPerson: contactPerson.trim() || undefined,
             });
 
-            const json = await res.json();
-            if (!res.ok || !json.success) {
-                throw new Error(json.message || "Gagal membuat supplier.");
+            if (!res.success) {
+                throw new Error(res.message || "Gagal membuat supplier.");
             }
 
-            onSuccess(json.data);
+            onSuccess(res.data);
         } catch (err) {
             errorMessage = err instanceof Error ? err.message : "Gagal menambah supplier";
         } finally {

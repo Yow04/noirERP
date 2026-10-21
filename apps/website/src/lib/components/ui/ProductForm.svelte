@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch, fetchWithFallback } from "$lib/api/client";
     import { goto } from "$app/navigation";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
@@ -65,18 +65,8 @@
 
     async function loadCategories() {
         try {
-            const response = await fetch(
-                `${PUBLIC_API_BASE_URL}/categories`,
-            );
-            const result = await response.json();
-
-            if (response.ok && result.success && result.data?.length > 0) {
-                categories = result.data;
-            } else {
-                categories = mockCategories;
-            }
-        } catch {
-            categories = mockCategories;
+            const res = await fetchWithFallback<Category[]>("/categories", mockCategories);
+            categories = res.data;
         } finally {
             loadingCategories = false;
         }
@@ -135,21 +125,17 @@
         };
 
         try {
-            const url = isEdit
-                ? `${PUBLIC_API_BASE_URL}/products/${product!.id}`
-                : `${PUBLIC_API_BASE_URL}/products`;
+            const endpoint = isEdit
+                ? `/products/${product!.id}`
+                : `/products`;
 
-            const response = await fetch(url, {
-                method: isEdit ? "PATCH" : "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
+            const response = isEdit
+                ? await apiFetch.patch(endpoint, payload)
+                : await apiFetch.post(endpoint, payload);
 
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
+            if (!response.success) {
                 throw new Error(
-                    result.message ?? "Gagal menyimpan produk",
+                    response.message ?? "Gagal menyimpan produk",
                 );
             }
 

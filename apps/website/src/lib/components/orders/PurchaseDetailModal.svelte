@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PUBLIC_API_BASE_URL } from "$env/static/public";
+    import { apiFetch, fetchWithFallback } from "$lib/api/client";
     import { Button } from "$lib/components/ui/button";
     import { HugeiconsIcon } from "@hugeicons/svelte";
     import {
@@ -40,19 +40,13 @@
         error = "";
         actionSuccessMsg = "";
         try {
-            const res = await fetch(`${PUBLIC_API_BASE_URL}/purchases/${orderId}`);
-            const json = await res.json();
-            if (res.ok && json.success) {
-                order = json.data;
-                isDemo = false;
-            } else {
-                throw new Error(json.message || "Gagal memuat detail PO");
+            const found = (mockPurchaseOrders.find((o) => o.id === orderId) || mockPurchaseOrders[0]) as unknown as PurchaseOrder;
+            const res = await fetchWithFallback<PurchaseOrder>(`/purchases/${orderId}`, JSON.parse(JSON.stringify(found)));
+            order = res.data;
+            isDemo = res.isDemo;
+            if (res.error && !res.isDemo) {
+                error = res.error;
             }
-        } catch {
-            // Live Preview Fallback
-            const found = mockPurchaseOrders.find((o) => o.id === orderId) || mockPurchaseOrders[0];
-            order = JSON.parse(JSON.stringify(found));
-            isDemo = true;
         } finally {
             loading = false;
         }
@@ -88,15 +82,12 @@
         }
 
         try {
-            const res = await fetch(`${PUBLIC_API_BASE_URL}/purchases/${order.id}/receive`, {
-                method: "PATCH",
-            });
-            const json = await res.json();
-            if (!res.ok || !json.success) {
-                throw new Error(json.message || "Gagal memproses penerimaan barang");
+            const res = await apiFetch.patch(`/purchases/${order.id}/receive`);
+            if (!res.success) {
+                throw new Error(res.message || "Gagal memproses penerimaan barang");
             }
 
-            actionSuccessMsg = json.message || "Barang berhasil diterima dan stok telah bertambah!";
+            actionSuccessMsg = res.message || "Barang berhasil diterima dan stok telah bertambah!";
             await loadDetail();
             onOrderUpdated();
         } catch (err) {
@@ -125,15 +116,12 @@
         }
 
         try {
-            const res = await fetch(`${PUBLIC_API_BASE_URL}/purchases/${order.id}/cancel`, {
-                method: "PATCH",
-            });
-            const json = await res.json();
-            if (!res.ok || !json.success) {
-                throw new Error(json.message || "Gagal membatalkan PO");
+            const res = await apiFetch.patch(`/purchases/${order.id}/cancel`);
+            if (!res.success) {
+                throw new Error(res.message || "Gagal membatalkan PO");
             }
 
-            actionSuccessMsg = json.message || "PO berhasil dibatalkan.";
+            actionSuccessMsg = res.message || "PO berhasil dibatalkan.";
             await loadDetail();
             onOrderUpdated();
         } catch (err) {

@@ -2,8 +2,12 @@ import { Hono } from "hono";
 import { desc } from "drizzle-orm";
 import { db } from "../db/index";
 import { users } from "../db/schema/index";
+import { authMiddleware, requireRole } from "../middleware/auth";
 
 const userRoutes = new Hono();
+
+// Seluruh endpoint pengguna hanya dapat diakses oleh Admin
+userRoutes.use("*", authMiddleware, requireRole(["Admin"]));
 
 // GET /api/v1/users - Mengambil daftar pengguna
 userRoutes.get("/", async (c) => {

@@ -5,8 +5,12 @@ import {
     createSalesOrderSchema,
     salesFilterSchema,
 } from "../validator/validator.sales";
+import { authMiddleware } from "../middleware/auth";
 
 const salesRoutes = new Hono();
+
+// Seluruh route penjualan memerlukan autentikasi
+salesRoutes.use("*", authMiddleware);
 
 // GET /api/v1/sales/summary
 // Ringkasan data sales (Total SO, Revenue, Transaksi hari ini)
