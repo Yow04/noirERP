@@ -20,9 +20,6 @@ type CreateSalesOrderParams = {
 };
 
 export class SalesService {
-    /**
-     * Generate nomor SO otomatis: SO-YYYYMMDD-XXXX
-     */
     static async generateOrderNumber(): Promise<string> {
         const today = new Date();
         const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
@@ -37,10 +34,6 @@ export class SalesService {
         return `${prefix}-${String(seq).padStart(4, "0")}`;
     }
 
-    /**
-     * Buat Sales Order baru (status DRAFT)
-     * Validasi ketersediaan stok di tahap ini
-     */
     static async createSalesOrder(params: CreateSalesOrderParams) {
         return await db.transaction(async (tx) => {
             const orderNumber = await SalesService.generateOrderNumber();
@@ -102,9 +95,6 @@ export class SalesService {
         });
     }
 
-    /**
-     * Konfirmasi penjualan → status COMPLETED, stok berkurang via InventoryService
-     */
     static async completeSalesOrder(id: string) {
         return await db.transaction(async (tx) => {
             // 1. Ambil SO
@@ -157,9 +147,6 @@ export class SalesService {
         });
     }
 
-    /**
-     * Batalkan SO (hanya bisa jika masih DRAFT)
-     */
     static async cancelSalesOrder(id: string) {
         return await db.transaction(async (tx) => {
             const [so] = await tx
@@ -186,9 +173,6 @@ export class SalesService {
         });
     }
 
-    /**
-     * Daftar SO dengan filter & pagination
-     */
     static async listSalesOrders(filters: {
         status?: string;
         search?: string;
@@ -250,9 +234,6 @@ export class SalesService {
         };
     }
 
-    /**
-     * Detail SO dengan items + info produk
-     */
     static async getSalesOrderDetail(id: string) {
         const [so] = await db
             .select({
@@ -289,56 +270,25 @@ export class SalesService {
         return { ...so, items };
     }
 
-    /**
-     * Ringkasan sales untuk KPI
-     */
     static async getSummary() {
-        const [totalSO] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(salesOrders);
-
-        const [draftSO] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(salesOrders)
-            .where(eq(salesOrders.status, "DRAFT"));
-
-        const [completedSO] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(salesOrders)
-            .where(eq(salesOrders.status, "COMPLETED"));
-
-        const [totalRevenue] = await db
-            .select({
-                total: sql<string>`COALESCE(SUM(CAST(${salesOrders.totalAmount} AS NUMERIC)), 0)`,
-            })
-            .from(salesOrders)
-            .where(eq(salesOrders.status, "COMPLETED"));
-
-        // Transaksi hari ini (completed)
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
 
-        const [todayCount] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(salesOrders)
-            .where(
-                and(
-                    eq(salesOrders.status, "COMPLETED"),
-                    gte(salesOrders.completedAt, todayStart)
-                )
-            );
-
-        const [todayRevenue] = await db
-            .select({
-                total: sql<string>`COALESCE(SUM(CAST(${salesOrders.totalAmount} AS NUMERIC)), 0)`,
-            })
-            .from(salesOrders)
-            .where(
-                and(
-                    eq(salesOrders.status, "COMPLETED"),
-                    gte(salesOrders.completedAt, todayStart)
-                )
-            );
+        const [
+            [totalSO],
+            [draftSO],
+            [completedSO],
+            [totalRevenue],
+            [todayCount],
+            [todayRevenue],
+        ] = await Promise.all([
+            db.select({ count: sql<number>`count(*)::int` }).from(salesOrders),
+            db.select({ count: sql<number>`count(*)::int` }).from(salesOrders).where(eq(salesOrders.status, "DRAFT")),
+            db.select({ count: sql<number>`count(*)::int` }).from(salesOrders).where(eq(salesOrders.status, "COMPLETED")),
+            db.select({ total: sql<string>`COALESCE(SUM(CAST(${salesOrders.totalAmount} AS NUMERIC)), 0)` }).from(salesOrders).where(eq(salesOrders.status, "COMPLETED")),
+            db.select({ count: sql<number>`count(*)::int` }).from(salesOrders).where(and(eq(salesOrders.status, "COMPLETED"), gte(salesOrders.completedAt, todayStart))),
+            db.select({ total: sql<string>`COALESCE(SUM(CAST(${salesOrders.totalAmount} AS NUMERIC)), 0)` }).from(salesOrders).where(and(eq(salesOrders.status, "COMPLETED"), gte(salesOrders.completedAt, todayStart))),
+        ]);
 
         return {
             totalOrders: totalSO?.count ?? 0,

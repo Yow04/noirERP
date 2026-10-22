@@ -6,6 +6,7 @@ import {
     purchaseFilterSchema,
 } from "../validator/validator.purchase";
 import { authMiddleware } from "../middleware/auth";
+import { sendSuccess, sendError } from "../lib/response";
 
 const purchaseRoutes = new Hono();
 
@@ -17,18 +18,10 @@ purchaseRoutes.use("*", authMiddleware);
 purchaseRoutes.get("/summary", async (c) => {
     try {
         const summary = await PurchaseService.getSummary();
-        return c.json({
-            success: true,
-            message: "Ringkasan pembelian berhasil diambil",
-            data: summary,
-        }, 200);
+        return sendSuccess(c, summary, "Ringkasan pembelian berhasil diambil");
     } catch (error) {
         console.error("Gagal mengambil ringkasan pembelian:", error);
-        return c.json({
-            success: false,
-            message: "Gagal mengambil ringkasan pembelian",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal mengambil ringkasan pembelian", 500, error);
     }
 });
 
@@ -37,18 +30,10 @@ purchaseRoutes.get("/summary", async (c) => {
 purchaseRoutes.get("/suppliers", async (c) => {
     try {
         const supplierList = await PurchaseService.listSuppliers();
-        return c.json({
-            success: true,
-            message: "Daftar supplier berhasil diambil",
-            data: supplierList,
-        }, 200);
+        return sendSuccess(c, supplierList, "Daftar supplier berhasil diambil");
     } catch (error) {
         console.error("Gagal mengambil supplier:", error);
-        return c.json({
-            success: false,
-            message: "Gagal mengambil supplier",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal mengambil supplier", 500, error);
     }
 });
 
@@ -58,7 +43,7 @@ purchaseRoutes.post("/suppliers", async (c) => {
     try {
         const body = await c.req.json();
         if (!body.name || typeof body.name !== "string" || !body.name.trim()) {
-            return c.json({ success: false, message: "Nama supplier wajib diisi" }, 400);
+            return sendError(c, "Nama supplier wajib diisi", 400);
         }
         const supplier = await PurchaseService.createSupplier({
             name: body.name.trim(),
@@ -67,18 +52,10 @@ purchaseRoutes.post("/suppliers", async (c) => {
             email: body.email?.trim() || null,
             address: body.address?.trim() || null,
         });
-        return c.json({
-            success: true,
-            message: "Supplier berhasil ditambahkan",
-            data: supplier,
-        }, 201);
+        return sendSuccess(c, supplier, "Supplier berhasil ditambahkan", 201);
     } catch (error) {
         console.error("Gagal membuat supplier:", error);
-        return c.json({
-            success: false,
-            message: "Gagal membuat supplier",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal membuat supplier", 500, error);
     }
 });
 
@@ -89,18 +66,14 @@ purchaseRoutes.get("/", zValidator("query", purchaseFilterSchema), async (c) => 
 
     try {
         const result = await PurchaseService.listPurchaseOrders(filters);
-        return c.json({
-            success: true,
-            message: "Daftar purchase order berhasil diambil",
-            ...result,
-        }, 200);
+        return sendSuccess(c, result.data, "Daftar purchase order berhasil diambil", 200, {
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+        });
     } catch (error) {
         console.error("Gagal mengambil daftar PO:", error);
-        return c.json({
-            success: false,
-            message: "Gagal mengambil daftar purchase order",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal mengambil daftar purchase order", 500, error);
     }
 });
 
@@ -108,28 +81,20 @@ purchaseRoutes.get("/", zValidator("query", purchaseFilterSchema), async (c) => 
 // Detail purchase order dengan items
 purchaseRoutes.get("/:id", async (c) => {
     const id = c.req.param("id");
+    if (!id) {
+        return sendError(c, "ID Purchase Order diperlukan", 400);
+    }
 
     try {
         const detail = await PurchaseService.getPurchaseOrderDetail(id);
         if (!detail) {
-            return c.json({
-                success: false,
-                message: "Purchase Order tidak ditemukan",
-            }, 404);
+            return sendError(c, "Purchase Order tidak ditemukan", 404);
         }
 
-        return c.json({
-            success: true,
-            message: "Detail purchase order berhasil diambil",
-            data: detail,
-        }, 200);
+        return sendSuccess(c, detail, "Detail purchase order berhasil diambil");
     } catch (error) {
         console.error("Gagal mengambil detail PO:", error);
-        return c.json({
-            success: false,
-            message: "Gagal mengambil detail purchase order",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal mengambil detail purchase order", 500, error);
     }
 });
 
@@ -148,18 +113,11 @@ purchaseRoutes.post(
                 items: body.items,
             });
 
-            return c.json({
-                success: true,
-                message: "Purchase Order berhasil dibuat",
-                data: result,
-            }, 201);
+            return sendSuccess(c, result, "Purchase Order berhasil dibuat", 201);
         } catch (error) {
             console.error("Gagal membuat PO:", error);
             const message = error instanceof Error ? error.message : "Gagal membuat purchase order";
-            return c.json({
-                success: false,
-                message,
-            }, 400);
+            return sendError(c, message, 400, error);
         }
     }
 );
@@ -168,21 +126,17 @@ purchaseRoutes.post(
 // Terima barang dari PO → stok bertambah
 purchaseRoutes.patch("/:id/receive", async (c) => {
     const id = c.req.param("id");
+    if (!id) {
+        return sendError(c, "ID Purchase Order diperlukan", 400);
+    }
 
     try {
         const result = await PurchaseService.receivePurchaseOrder(id);
-        return c.json({
-            success: true,
-            message: `PO ${result.order.orderNumber} berhasil diterima. Stok telah diperbarui.`,
-            data: result,
-        }, 200);
+        return sendSuccess(c, result, `PO ${result.order.orderNumber} berhasil diterima. Stok telah diperbarui.`);
     } catch (error) {
         console.error("Gagal menerima PO:", error);
         const message = error instanceof Error ? error.message : "Gagal menerima purchase order";
-        return c.json({
-            success: false,
-            message,
-        }, 400);
+        return sendError(c, message, 400, error);
     }
 });
 
@@ -190,21 +144,17 @@ purchaseRoutes.patch("/:id/receive", async (c) => {
 // Batalkan PO (hanya DRAFT)
 purchaseRoutes.patch("/:id/cancel", async (c) => {
     const id = c.req.param("id");
+    if (!id) {
+        return sendError(c, "ID Purchase Order diperlukan", 400);
+    }
 
     try {
         const result = await PurchaseService.cancelPurchaseOrder(id);
-        return c.json({
-            success: true,
-            message: `PO ${result.orderNumber} berhasil dibatalkan.`,
-            data: result,
-        }, 200);
+        return sendSuccess(c, result, `PO ${result.orderNumber} berhasil dibatalkan.`);
     } catch (error) {
         console.error("Gagal membatalkan PO:", error);
         const message = error instanceof Error ? error.message : "Gagal membatalkan purchase order";
-        return c.json({
-            success: false,
-            message,
-        }, 400);
+        return sendError(c, message, 400, error);
     }
 });
 

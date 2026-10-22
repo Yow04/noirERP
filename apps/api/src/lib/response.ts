@@ -6,30 +6,30 @@ export interface ApiResponseEnvelope<T = any> {
     message: string;
     data?: T;
     error?: string;
+    meta?: Record<string, any>;
+    total?: number;
+    page?: number;
+    limit?: number;
 }
 
-/**
- * Standardized success response helper
- */
 export function sendSuccess<T = any>(
     c: Context,
     data?: T,
     message = "Request succeeded",
-    status: ContentfulStatusCode = 200
+    status: ContentfulStatusCode = 200,
+    meta?: { total?: number; page?: number; limit?: number; [key: string]: any }
 ) {
     return c.json<ApiResponseEnvelope<T>>(
         {
             success: true,
             message,
             ...(data !== undefined ? { data } : {}),
+            ...(meta ? { ...meta, meta } : {}),
         },
         status
     );
 }
 
-/**
- * Standardized error response helper
- */
 export function sendError(
     c: Context,
     message = "An error occurred",

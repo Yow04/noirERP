@@ -6,6 +6,7 @@ import {
     salesFilterSchema,
 } from "../validator/validator.sales";
 import { authMiddleware } from "../middleware/auth";
+import { sendSuccess, sendError } from "../lib/response";
 
 const salesRoutes = new Hono();
 
@@ -17,18 +18,10 @@ salesRoutes.use("*", authMiddleware);
 salesRoutes.get("/summary", async (c) => {
     try {
         const summary = await SalesService.getSummary();
-        return c.json({
-            success: true,
-            message: "Ringkasan penjualan berhasil diambil",
-            data: summary,
-        }, 200);
+        return sendSuccess(c, summary, "Ringkasan penjualan berhasil diambil");
     } catch (error) {
         console.error("Gagal mengambil ringkasan penjualan:", error);
-        return c.json({
-            success: false,
-            message: "Gagal mengambil ringkasan penjualan",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal mengambil ringkasan penjualan", 500, error);
     }
 });
 
@@ -39,18 +32,14 @@ salesRoutes.get("/", zValidator("query", salesFilterSchema), async (c) => {
 
     try {
         const result = await SalesService.listSalesOrders(filters);
-        return c.json({
-            success: true,
-            message: "Daftar sales order berhasil diambil",
-            ...result,
-        }, 200);
+        return sendSuccess(c, result.data, "Daftar sales order berhasil diambil", 200, {
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+        });
     } catch (error) {
         console.error("Gagal mengambil daftar SO:", error);
-        return c.json({
-            success: false,
-            message: "Gagal mengambil daftar sales order",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal mengambil daftar sales order", 500, error);
     }
 });
 
@@ -58,28 +47,20 @@ salesRoutes.get("/", zValidator("query", salesFilterSchema), async (c) => {
 // Detail sales order dengan items
 salesRoutes.get("/:id", async (c) => {
     const id = c.req.param("id");
+    if (!id) {
+        return sendError(c, "ID Sales Order diperlukan", 400);
+    }
 
     try {
         const detail = await SalesService.getSalesOrderDetail(id);
         if (!detail) {
-            return c.json({
-                success: false,
-                message: "Sales Order tidak ditemukan",
-            }, 404);
+            return sendError(c, "Sales Order tidak ditemukan", 404);
         }
 
-        return c.json({
-            success: true,
-            message: "Detail sales order berhasil diambil",
-            data: detail,
-        }, 200);
+        return sendSuccess(c, detail, "Detail sales order berhasil diambil");
     } catch (error) {
         console.error("Gagal mengambil detail SO:", error);
-        return c.json({
-            success: false,
-            message: "Gagal mengambil detail sales order",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal mengambil detail sales order", 500, error);
     }
 });
 
@@ -98,18 +79,11 @@ salesRoutes.post(
                 items: body.items,
             });
 
-            return c.json({
-                success: true,
-                message: "Sales Order berhasil dibuat",
-                data: result,
-            }, 201);
+            return sendSuccess(c, result, "Sales Order berhasil dibuat", 201);
         } catch (error) {
             console.error("Gagal membuat SO:", error);
             const message = error instanceof Error ? error.message : "Gagal membuat sales order";
-            return c.json({
-                success: false,
-                message,
-            }, 400);
+            return sendError(c, message, 400, error);
         }
     }
 );
@@ -118,21 +92,17 @@ salesRoutes.post(
 // Konfirmasi penjualan → stok berkurang
 salesRoutes.patch("/:id/complete", async (c) => {
     const id = c.req.param("id");
+    if (!id) {
+        return sendError(c, "ID Sales Order diperlukan", 400);
+    }
 
     try {
         const result = await SalesService.completeSalesOrder(id);
-        return c.json({
-            success: true,
-            message: `SO ${result.order.orderNumber} berhasil dikonfirmasi. Stok telah diperbarui.`,
-            data: result,
-        }, 200);
+        return sendSuccess(c, result, `SO ${result.order.orderNumber} berhasil dikonfirmasi. Stok telah diperbarui.`);
     } catch (error) {
         console.error("Gagal mengkonfirmasi SO:", error);
         const message = error instanceof Error ? error.message : "Gagal mengkonfirmasi sales order";
-        return c.json({
-            success: false,
-            message,
-        }, 400);
+        return sendError(c, message, 400, error);
     }
 });
 
@@ -140,21 +110,17 @@ salesRoutes.patch("/:id/complete", async (c) => {
 // Batalkan SO (hanya DRAFT)
 salesRoutes.patch("/:id/cancel", async (c) => {
     const id = c.req.param("id");
+    if (!id) {
+        return sendError(c, "ID Sales Order diperlukan", 400);
+    }
 
     try {
         const result = await SalesService.cancelSalesOrder(id);
-        return c.json({
-            success: true,
-            message: `SO ${result.orderNumber} berhasil dibatalkan.`,
-            data: result,
-        }, 200);
+        return sendSuccess(c, result, `SO ${result.orderNumber} berhasil dibatalkan.`);
     } catch (error) {
         console.error("Gagal membatalkan SO:", error);
         const message = error instanceof Error ? error.message : "Gagal membatalkan sales order";
-        return c.json({
-            success: false,
-            message,
-        }, 400);
+        return sendError(c, message, 400, error);
     }
 });
 

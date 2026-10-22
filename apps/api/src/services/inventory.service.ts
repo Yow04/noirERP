@@ -22,10 +22,6 @@ export function determineStockStatus(stock: number, minStock: number): StockStat
 }
 
 export class InventoryService {
-    /**
-     * Catat mutasi stok dan perbarui stok produk secara atomik (transactional).
-     * Dapat digunakan ulang (reusable) di berbagai controller/service (misal: POS, Purchase, Stock Opname).
-     */
     static async recordMutation(params: RecordMutationParams, externalTx?: any) {
         const executor = externalTx ?? db;
 
@@ -144,9 +140,6 @@ export class InventoryService {
         }
     }
 
-    /**
-     * Memperbarui aturan stok minimum untuk produk tertentu
-     */
     static async updateMinStock(productId: string, minStock: number) {
         if (minStock < 0) {
             throw new Error("Stok minimum tidak boleh negatif.");
@@ -179,9 +172,6 @@ export class InventoryService {
         };
     }
 
-    /**
-     * Mengambil daftar produk inventaris lengkap dengan status stok & aturan stok minimum
-     */
     static async getInventoryItems(filters: {
         status?: "all" | "normal" | "low" | "out";
         search?: string;
@@ -247,9 +237,6 @@ export class InventoryService {
         return enrichedItems;
     }
 
-    /**
-     * Mengambil riwayat mutasi stok dengan filtering
-     */
     static async getMutations(filters: {
         productId?: string;
         type?: StockMutationType;
@@ -309,34 +296,20 @@ export class InventoryService {
         return mutations;
     }
 
-    /**
-     * Ringkasan stok inventaris untuk KPI & widget
-     */
     static async getSummary() {
-        const [totalProductsRow] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(products);
-
-        const [totalStockRow] = await db
-            .select({ total: sql<number>`coalesce(sum(${products.stock}), 0)::int` })
-            .from(products);
-
-        // Low stock: stock <= minStock AND stock > 0
-        const [lowStockRow] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(products)
-            .where(and(lte(products.stock, products.minStock), gt(products.stock, 0)));
-
-        // Out of stock: stock = 0
-        const [outOfStockRow] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(products)
-            .where(eq(products.stock, 0));
-
-        // Total mutations recorded
-        const [mutationsCountRow] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(stockMutations);
+        const [
+            [totalProductsRow],
+            [totalStockRow],
+            [lowStockRow],
+            [outOfStockRow],
+            [mutationsCountRow],
+        ] = await Promise.all([
+            db.select({ count: sql<number>`count(*)::int` }).from(products),
+            db.select({ total: sql<number>`coalesce(sum(${products.stock}), 0)::int` }).from(products),
+            db.select({ count: sql<number>`count(*)::int` }).from(products).where(and(lte(products.stock, products.minStock), gt(products.stock, 0))),
+            db.select({ count: sql<number>`count(*)::int` }).from(products).where(eq(products.stock, 0)),
+            db.select({ count: sql<number>`count(*)::int` }).from(stockMutations),
+        ]);
 
         const totalSKUs = totalProductsRow?.count ?? 0;
         const lowStockCount = lowStockRow?.count ?? 0;

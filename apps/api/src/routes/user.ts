@@ -3,6 +3,7 @@ import { desc } from "drizzle-orm";
 import { db } from "../db/index";
 import { users } from "../db/schema/index";
 import { authMiddleware, requireRole } from "../middleware/auth";
+import { sendSuccess, sendError } from "../lib/response";
 
 const userRoutes = new Hono();
 
@@ -24,18 +25,10 @@ userRoutes.get("/", async (c) => {
             .from(users)
             .orderBy(desc(users.createdAt));
 
-        return c.json({
-            success: true,
-            message: "Users retrieved successfully",
-            data: result,
-        }, 200);
+        return sendSuccess(c, result, "Users retrieved successfully");
     } catch (error) {
         console.error("Failed to fetch users:", error);
-        return c.json({
-            success: false,
-            message: "Failed to fetch users",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Failed to fetch users", 500, error);
     }
 });
 
