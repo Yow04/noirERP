@@ -17,7 +17,7 @@
     } from "$lib/types/purchase";
     import { formatCurrency } from "$lib/utils";
     import QuickAddSupplierForm from "./QuickAddSupplierForm.svelte";
-    import PurchaseItemRow from "./PurchaseItemRow.svelte";
+    import OrderLineItemsSection from "./OrderLineItemsSection.svelte";
 
     type Props = {
         isOpen: boolean;
@@ -91,24 +91,6 @@
             showAddSupplier = false;
         }
     });
-
-    function addItem() {
-        items = [...items, { productId: "", quantity: 1, unitPrice: 0 }];
-    }
-
-    function removeItem(index: number) {
-        if (items.length > 1) {
-            items = items.filter((_, i) => i !== index);
-        }
-    }
-
-    function handleProductChange(index: number, prodId: string) {
-        const prod = products.find((p) => p.id === prodId);
-        items[index].productId = prodId;
-        if (prod) {
-            items[index].unitPrice = Number(prod.purchasePrice);
-        }
-    }
 
     function handleSupplierCreated(newSupplier: Supplier) {
         suppliers = [...suppliers, newSupplier];
@@ -307,43 +289,12 @@
                         {/if}
                     </div>
 
-                    <!-- Line Items Section -->
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <Label class="text-xs font-medium text-zinc-300">
-                                Daftar Produk yang Dipesan
-                            </Label>
-                            <span class="text-xs text-zinc-500">
-                                {items.length} item
-                            </span>
-                        </div>
-
-                        <div class="space-y-2.5">
-                            {#each items as _, index}
-                                <PurchaseItemRow
-                                    bind:item={items[index]}
-                                    {products}
-                                    canRemove={items.length > 1}
-                                    onProductChange={(prodId) =>
-                                        handleProductChange(index, prodId)}
-                                    onRemove={() => removeItem(index)}
-                                />
-                            {/each}
-                        </div>
-
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onclick={addItem}
-                            class="w-full border-dashed border-zinc-700/80
-                                   hover:border-violet-500/50 hover:bg-violet-500/5
-                                   text-zinc-300 text-xs h-9 gap-1.5"
-                        >
-                            <HugeiconsIcon icon={PlusSignIcon} size={14} />
-                            Tambah Baris Produk
-                        </Button>
-                    </div>
+                    <!-- Line Items Section (Reusable Component) -->
+                    <OrderLineItemsSection
+                        bind:items
+                        {products}
+                        mode="purchase"
+                    />
 
                     <!-- Notes & Total Summary -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">

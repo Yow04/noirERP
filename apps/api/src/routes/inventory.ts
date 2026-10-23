@@ -8,6 +8,7 @@ import {
     mutationFilterSchema,
 } from "../validator/validator.inventory";
 import { authMiddleware } from "../middleware/auth";
+import { sendSuccess, sendError } from "../lib/response";
 
 const inventoryRoutes = new Hono();
 
@@ -19,18 +20,10 @@ inventoryRoutes.use("*", authMiddleware);
 inventoryRoutes.get("/summary", async (c) => {
     try {
         const summary = await InventoryService.getSummary();
-        return c.json({
-            success: true,
-            message: "Ringkasan inventaris berhasil diambil",
-            data: summary,
-        }, 200);
+        return sendSuccess(c, summary, "Ringkasan inventaris berhasil diambil");
     } catch (error) {
         console.error("Gagal mengambil ringkasan inventaris:", error);
-        return c.json({
-            success: false,
-            message: "Gagal mengambil ringkasan inventaris",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal mengambil ringkasan inventaris", 500, error);
     }
 });
 
@@ -41,18 +34,10 @@ inventoryRoutes.get("/items", zValidator("query", inventoryFilterSchema), async 
 
     try {
         const items = await InventoryService.getInventoryItems(filters);
-        return c.json({
-            success: true,
-            message: "Daftar inventaris berhasil diambil",
-            data: items,
-        }, 200);
+        return sendSuccess(c, items, "Daftar inventaris berhasil diambil");
     } catch (error) {
         console.error("Gagal mengambil daftar inventaris:", error);
-        return c.json({
-            success: false,
-            message: "Gagal mengambil daftar inventaris",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal mengambil daftar inventaris", 500, error);
     }
 });
 
@@ -63,22 +48,18 @@ inventoryRoutes.patch(
     zValidator("json", updateMinStockSchema),
     async (c) => {
         const id = c.req.param("id");
+        if (!id) {
+            return sendError(c, "ID produk diperlukan", 400);
+        }
         const { minStock } = c.req.valid("json");
 
         try {
             const updated = await InventoryService.updateMinStock(id, minStock);
-            return c.json({
-                success: true,
-                message: `Aturan stok minimum berhasil diperbarui menjadi ${minStock}`,
-                data: updated,
-            }, 200);
+            return sendSuccess(c, updated, `Aturan stok minimum berhasil diperbarui menjadi ${minStock}`);
         } catch (error) {
             console.error("Gagal memperbarui aturan stok minimum:", error);
             const message = error instanceof Error ? error.message : "Gagal memperbarui stok minimum";
-            return c.json({
-                success: false,
-                message,
-            }, 400);
+            return sendError(c, message, 400, error);
         }
     }
 );
@@ -90,18 +71,10 @@ inventoryRoutes.get("/mutations", zValidator("query", mutationFilterSchema), asy
 
     try {
         const mutations = await InventoryService.getMutations(filters);
-        return c.json({
-            success: true,
-            message: "Riwayat mutasi stok berhasil diambil",
-            data: mutations,
-        }, 200);
+        return sendSuccess(c, mutations, "Riwayat mutasi stok berhasil diambil");
     } catch (error) {
         console.error("Gagal mengambil mutasi stok:", error);
-        return c.json({
-            success: false,
-            message: "Gagal mengambil riwayat mutasi stok",
-            error: error instanceof Error ? error.message : String(error),
-        }, 500);
+        return sendError(c, "Gagal mengambil riwayat mutasi stok", 500, error);
     }
 });
 
@@ -123,18 +96,11 @@ inventoryRoutes.post(
                 notes: body.notes,
             });
 
-            return c.json({
-                success: true,
-                message: "Mutasi stok berhasil dicatat",
-                data: result,
-            }, 201);
+            return sendSuccess(c, result, "Mutasi stok berhasil dicatat", 201);
         } catch (error) {
             console.error("Gagal mencatat mutasi stok:", error);
             const message = error instanceof Error ? error.message : "Gagal mencatat mutasi stok";
-            return c.json({
-                success: false,
-                message,
-            }, 400);
+            return sendError(c, message, 400, error);
         }
     }
 );

@@ -13,16 +13,6 @@ export interface ApiResponse<T = any> {
     error?: string;
 }
 
-/**
- * Client API Terpusat untuk noirERP.
- * Secara otomatis menangani:
- * - Resolusi Base URL API
- * - Query parameters serialization
- * - Injeksi otomatis header 'Authorization: Bearer <token>'
- * - Default 'Content-Type: application/json' (kecuali FormData)
- * - Penanganan sesi kedaluwarsa 401 Unauthorized (auto-logout & redirect ke login kecuali di mode demo)
- * - Safe JSON parsing tanpa crash
- */
 export async function apiFetch<T = any>(
     endpoint: string,
     options: ApiFetchOptions = {}
@@ -101,11 +91,6 @@ export async function apiFetch<T = any>(
     }
 }
 
-/**
- * Helper terpadu untuk memanggil API dengan Live Preview Fallback.
- * Jika backend sedang offline atau dalam mode demo preview di Vercel,
- * otomatis beralih ke fallbackData secara aman tanpa crash atau alert error.
- */
 export async function fetchWithFallback<T>(
     endpoint: string,
     fallbackData: T,

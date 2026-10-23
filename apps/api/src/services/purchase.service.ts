@@ -21,9 +21,6 @@ type CreatePurchaseOrderParams = {
 };
 
 export class PurchaseService {
-    /**
-     * Generate nomor PO otomatis: PO-YYYYMMDD-XXXX
-     */
     static async generateOrderNumber(): Promise<string> {
         const today = new Date();
         const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
@@ -38,9 +35,6 @@ export class PurchaseService {
         return `${prefix}-${String(seq).padStart(4, "0")}`;
     }
 
-    /**
-     * Buat Purchase Order baru (status DRAFT)
-     */
     static async createPurchaseOrder(params: CreatePurchaseOrderParams) {
         return await db.transaction(async (tx) => {
             const orderNumber = await PurchaseService.generateOrderNumber();
@@ -83,9 +77,6 @@ export class PurchaseService {
         });
     }
 
-    /**
-     * Terima barang dari PO → status RECEIVED, stok bertambah via InventoryService
-     */
     static async receivePurchaseOrder(id: string) {
         return await db.transaction(async (tx) => {
             // 1. Ambil PO
@@ -138,9 +129,6 @@ export class PurchaseService {
         });
     }
 
-    /**
-     * Batalkan PO (hanya bisa jika masih DRAFT)
-     */
     static async cancelPurchaseOrder(id: string) {
         return await db.transaction(async (tx) => {
             const [po] = await tx
@@ -167,9 +155,6 @@ export class PurchaseService {
         });
     }
 
-    /**
-     * Daftar PO dengan filter & pagination
-     */
     static async listPurchaseOrders(filters: {
         status?: string;
         search?: string;
@@ -234,9 +219,6 @@ export class PurchaseService {
         };
     }
 
-    /**
-     * Detail PO dengan items + info produk
-     */
     static async getPurchaseOrderDetail(id: string) {
         const [po] = await db
             .select({
@@ -277,30 +259,18 @@ export class PurchaseService {
         return { ...po, items };
     }
 
-    /**
-     * Ringkasan purchasing untuk KPI
-     */
     static async getSummary() {
-        const [totalPO] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(purchaseOrders);
-
-        const [draftPO] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(purchaseOrders)
-            .where(eq(purchaseOrders.status, "DRAFT"));
-
-        const [receivedPO] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(purchaseOrders)
-            .where(eq(purchaseOrders.status, "RECEIVED"));
-
-        const [totalValue] = await db
-            .select({
-                total: sql<string>`COALESCE(SUM(CAST(${purchaseOrders.totalAmount} AS NUMERIC)), 0)`,
-            })
-            .from(purchaseOrders)
-            .where(eq(purchaseOrders.status, "RECEIVED"));
+        const [
+            [totalPO],
+            [draftPO],
+            [receivedPO],
+            [totalValue],
+        ] = await Promise.all([
+            db.select({ count: sql<number>`count(*)::int` }).from(purchaseOrders),
+            db.select({ count: sql<number>`count(*)::int` }).from(purchaseOrders).where(eq(purchaseOrders.status, "DRAFT")),
+            db.select({ count: sql<number>`count(*)::int` }).from(purchaseOrders).where(eq(purchaseOrders.status, "RECEIVED")),
+            db.select({ total: sql<string>`COALESCE(SUM(CAST(${purchaseOrders.totalAmount} AS NUMERIC)), 0)` }).from(purchaseOrders).where(eq(purchaseOrders.status, "RECEIVED")),
+        ]);
 
         return {
             totalOrders: totalPO?.count ?? 0,
@@ -310,9 +280,6 @@ export class PurchaseService {
         };
     }
 
-    /**
-     * Ambil daftar semua supplier
-     */
     static async listSuppliers() {
         return await db
             .select()
@@ -320,9 +287,6 @@ export class PurchaseService {
             .orderBy(suppliers.name);
     }
 
-    /**
-     * Buat supplier baru
-     */
     static async createSupplier(data: {
         name: string;
         contactPerson?: string | null;

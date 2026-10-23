@@ -12,6 +12,7 @@
         AlertCircleIcon,
     } from "@hugeicons/core-free-icons";
     import { formatCurrency } from "$lib/utils";
+    import OrderLineItemsSection from "./OrderLineItemsSection.svelte";
 
     type ProductOption = {
         id: string;
@@ -63,7 +64,10 @@
                 stock: p.stock,
             }));
 
-            const res = await fetchWithFallback<any[]>("/inventory/items", fallback);
+            const res = await fetchWithFallback<any[]>(
+                "/inventory/items",
+                fallback,
+            );
             products = (res.data ?? []).map((p: any) => ({
                 id: p.id,
                 name: p.name,
@@ -86,25 +90,7 @@
         }
     });
 
-    function addItem() {
-        items = [...items, { productId: "", quantity: 1, unitPrice: 0 }];
-    }
-
-    function removeItem(index: number) {
-        if (items.length > 1) {
-            items = items.filter((_, i) => i !== index);
-        }
-    }
-
-    function handleProductChange(index: number, prodId: string) {
-        const prod = products.find((p) => p.id === prodId);
-        items[index].productId = prodId;
-        if (prod) {
-            items[index].unitPrice = Number(prod.sellingPrice);
-        }
-    }
-
-    // Helper untuk mengecek stok per baris
+    // Helper untuk mengecek stok per baris saat submit
     function getProductStock(prodId: string): number {
         const prod = products.find((p) => p.id === prodId);
         return prod ? prod.stock : 0;
@@ -112,7 +98,10 @@
 
     // Hitung total nilai SO
     const grandTotal = $derived(
-        items.reduce((sum, item) => sum + (item.quantity * item.unitPrice || 0), 0)
+        items.reduce(
+            (sum, item) => sum + (item.quantity * item.unitPrice || 0),
+            0,
+        ),
     );
 
     async function handleSubmit(e: SubmitEvent) {
@@ -164,10 +153,13 @@
             onClose();
         } catch (err) {
             // Live Preview Demo di Vercel: simulasikan sukses
-            if (err instanceof TypeError || (err instanceof Error && err.message.includes("fetch"))) {
+            if (
+                err instanceof TypeError ||
+                (err instanceof Error && err.message.includes("fetch"))
+            ) {
                 const grandTotal = items.reduce(
                     (sum, item) => sum + (item.quantity * item.unitPrice || 0),
-                    0
+                    0,
                 );
                 const mockNewSO = {
                     id: `so-demo-${Date.now()}`,
@@ -185,7 +177,8 @@
                 onClose();
                 return;
             }
-            error = err instanceof Error ? err.message : "Terjadi kesalahan sistem";
+            error =
+                err instanceof Error ? err.message : "Terjadi kesalahan sistem";
         } finally {
             submitting = false;
         }
@@ -203,16 +196,26 @@
         ></button>
 
         <!-- Modal Box -->
-        <div class="relative w-full max-w-3xl overflow-hidden rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl z-10 max-h-[90vh] flex flex-col">
+        <div
+            class="relative w-full max-w-3xl overflow-hidden rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl z-10 max-h-[90vh] flex flex-col"
+        >
             <!-- Header -->
-            <div class="flex items-center justify-between border-b border-zinc-800/80 px-6 py-4 bg-zinc-900/40">
+            <div
+                class="flex items-center justify-between border-b border-zinc-800/80 px-6 py-4 bg-zinc-900/40"
+            >
                 <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20">
+                    <div
+                        class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20"
+                    >
                         <HugeiconsIcon icon={Invoice01Icon} size={20} />
                     </div>
                     <div>
-                        <h2 class="text-base font-semibold text-white">Buat Sales Order (SO)</h2>
-                        <p class="text-xs text-zinc-400">Pencatatan transaksi penjualan (Status awal: Draft)</p>
+                        <h2 class="text-base font-semibold text-white">
+                            Buat Sales Order (SO)
+                        </h2>
+                        <p class="text-xs text-zinc-400">
+                            Pencatatan transaksi penjualan (Status awal: Draft)
+                        </p>
                     </div>
                 </div>
 
@@ -226,18 +229,29 @@
             </div>
 
             <!-- Content Form -->
-            <form onsubmit={handleSubmit} class="flex flex-col flex-1 overflow-hidden">
+            <form
+                onsubmit={handleSubmit}
+                class="flex flex-col flex-1 overflow-hidden"
+            >
                 <div class="flex-1 overflow-y-auto p-6 space-y-6">
                     {#if error}
-                        <div class="flex items-start gap-3 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3.5 text-xs text-rose-400">
-                            <HugeiconsIcon icon={AlertCircleIcon} size={16} class="shrink-0 mt-0.5" />
+                        <div
+                            class="flex items-start gap-3 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3.5 text-xs text-rose-400"
+                        >
+                            <HugeiconsIcon
+                                icon={AlertCircleIcon}
+                                size={16}
+                                class="shrink-0 mt-0.5"
+                            />
                             <span>{error}</span>
                         </div>
                     {/if}
 
                     <!-- Section Pelanggan -->
                     <div class="space-y-2">
-                        <Label class="text-xs font-medium text-zinc-300">Nama Pelanggan (Customer)</Label>
+                        <Label class="text-xs font-medium text-zinc-300"
+                            >Nama Pelanggan (Customer)</Label
+                        >
                         <Input
                             bind:value={customerName}
                             placeholder="Contoh: Budi Santoso / Walk-in Customer"
@@ -245,107 +259,16 @@
                         />
                     </div>
 
-                    <!-- Line Items Section -->
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <Label class="text-xs font-medium text-zinc-300">Daftar Produk yang Dijual</Label>
-                            <span class="text-xs text-zinc-500">{items.length} item</span>
-                        </div>
-
-                        <div class="space-y-2.5">
-                            {#each items as item, index}
-                                {@const availableStock = getProductStock(item.productId)}
-                                {@const isStockLow = item.productId && item.quantity > availableStock}
-                                <div class="p-3 rounded-xl bg-zinc-900/60 border {isStockLow ? 'border-rose-500/40 bg-rose-500/[0.03]' : 'border-zinc-800/80'} space-y-1.5">
-                                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                                        <!-- Produk Dropdown -->
-                                        <div class="flex-1 w-full sm:w-auto">
-                                            <select
-                                                value={item.productId}
-                                                onchange={(e) => handleProductChange(index, (e.target as HTMLSelectElement).value)}
-                                                class="w-full h-9 rounded-lg bg-zinc-950 border border-zinc-700/80 px-2.5 text-xs text-zinc-200 focus:border-violet-500"
-                                            >
-                                                <option value="">-- Pilih Produk --</option>
-                                                {#each products as prod}
-                                                    <option value={prod.id}>
-                                                        {prod.name} ({prod.sku}) — Stok: {prod.stock}
-                                                    </option>
-                                                {/each}
-                                            </select>
-                                        </div>
-
-                                        <!-- Kuantitas -->
-                                        <div class="w-24 shrink-0">
-                                            <div class="relative">
-                                                <Input
-                                                    type="number"
-                                                    min="1"
-                                                    bind:value={item.quantity}
-                                                    placeholder="Qty"
-                                                    class="h-9 bg-zinc-950 border-zinc-700/80 text-xs pr-7 text-right"
-                                                />
-                                                <span class="absolute right-2 top-2 text-[10px] text-zinc-500 pointer-events-none">pcs</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Harga Satuan Jual -->
-                                        <div class="w-36 shrink-0">
-                                            <div class="relative">
-                                                <Input
-                                                    type="number"
-                                                    min="0"
-                                                    bind:value={item.unitPrice}
-                                                    placeholder="Harga Jual"
-                                                    class="h-9 bg-zinc-950 border-zinc-700/80 text-xs pl-7 text-right"
-                                                />
-                                                <span class="absolute left-2 top-2 text-[10px] text-zinc-500 pointer-events-none">Rp</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Subtotal -->
-                                        <div class="w-28 text-right font-medium text-xs text-zinc-300 shrink-0">
-                                            {formatCurrency(item.quantity * item.unitPrice || 0)}
-                                        </div>
-
-                                        <!-- Hapus Baris -->
-                                        <button
-                                            type="button"
-                                            onclick={() => removeItem(index)}
-                                            disabled={items.length === 1}
-                                            class="p-2 text-zinc-500 hover:text-rose-400 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors shrink-0"
-                                            title="Hapus baris"
-                                        >
-                                            <HugeiconsIcon icon={Delete02Icon} size={15} />
-                                        </button>
-                                    </div>
-
-                                    {#if item.productId && isStockLow}
-                                        <div class="text-[11px] text-rose-400 flex items-center gap-1.5 pt-0.5">
-                                            <HugeiconsIcon icon={AlertCircleIcon} size={13} />
-                                            <span>Stok tidak cukup! Tersedia hanya {availableStock} unit di gudang.</span>
-                                        </div>
-                                    {/if}
-                                </div>
-                            {/each}
-                        </div>
-
-                        <!-- Tombol Tambah Item -->
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onclick={addItem}
-                            class="w-full border-dashed border-zinc-700/80 hover:border-violet-500/50 hover:bg-violet-500/5 text-zinc-300 text-xs h-9 gap-1.5"
-                        >
-                            <HugeiconsIcon icon={PlusSignIcon} size={14} />
-                            Tambah Baris Produk
-                        </Button>
-                    </div>
+                    <!-- Line Items Section (Reusable Component) -->
+                    <OrderLineItemsSection bind:items {products} mode="sales" />
 
                     <!-- Notes & Total Summary -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                         <div>
-                            <Label class="text-xs font-medium text-zinc-300 block mb-1.5">Catatan Penjualan (Opsional)</Label>
+                            <Label
+                                class="text-xs font-medium text-zinc-300 block mb-1.5"
+                                >Catatan Penjualan (Opsional)</Label
+                            >
                             <textarea
                                 bind:value={notes}
                                 rows="3"
@@ -354,22 +277,32 @@
                             ></textarea>
                         </div>
 
-                        <div class="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex flex-col justify-between">
+                        <div
+                            class="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex flex-col justify-between"
+                        >
                             <div class="space-y-1">
-                                <div class="text-[11px] text-zinc-400 uppercase tracking-wider">Total Penjualan</div>
+                                <div
+                                    class="text-[11px] text-zinc-400 uppercase tracking-wider"
+                                >
+                                    Total Penjualan
+                                </div>
                                 <div class="text-2xl font-bold text-violet-400">
                                     {formatCurrency(grandTotal)}
                                 </div>
                             </div>
                             <div class="text-[11px] text-zinc-500">
-                                * Stok belum berkurang hingga transaksi dikonfirmasi (Status: <strong>COMPLETED</strong>).
+                                * Stok belum berkurang hingga transaksi
+                                dikonfirmasi (Status: <strong>COMPLETED</strong
+                                >).
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Footer Actions -->
-                <div class="flex items-center justify-end gap-2.5 border-t border-zinc-800/80 px-6 py-4 bg-zinc-900/40">
+                <div
+                    class="flex items-center justify-end gap-2.5 border-t border-zinc-800/80 px-6 py-4 bg-zinc-900/40"
+                >
                     <Button
                         type="button"
                         variant="ghost"

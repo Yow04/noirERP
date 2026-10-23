@@ -7,3 +7,4 @@ export { default as PurchaseItemRow } from "./PurchaseItemRow.svelte";
 export { default as PurchaseDetailModal } from "./PurchaseDetailModal.svelte";
 export { default as CreateSalesModal } from "./CreateSalesModal.svelte";
 export { default as SalesDetailModal } from "./SalesDetailModal.svelte";
+export { default as OrderLineItemsSection } from "./OrderLineItemsSection.svelte";

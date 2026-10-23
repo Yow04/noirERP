@@ -17,10 +17,6 @@ declare module "hono" {
 
 const JWT_SECRET = process.env.JWT_SECRET_KEY || "noir_erp_fallback_secret_key_2026";
 
-/**
- * Middleware untuk memvalidasi JWT Bearer token pada request.
- * Jika valid, payload pengguna diinjeksi ke context: c.get('user')
- */
 export async function authMiddleware(c: Context, next: Next) {
     const authHeader = c.req.header("Authorization");
 
@@ -51,9 +47,6 @@ export async function authMiddleware(c: Context, next: Next) {
     }
 }
 
-/**
- * Middleware untuk membatasi akses berdasarkan peran pengguna (RBAC sederhana).
- */
 export function requireRole(allowedRoles: Array<"Admin" | "Staff" | string>) {
     return async (c: Context, next: Next) => {
         const user = c.get("user");
